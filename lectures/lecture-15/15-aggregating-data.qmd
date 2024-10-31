@@ -1,0 +1,633 @@
+---
+title: QTM 151 - Intro to Stats Computing II
+subtitle: Lecture 15 - Aggregating Data
+date: 2024-10-23
+date-format: "DD MMMM, YYYY"
+author:
+  - name: Danilo Freire
+    email: danilo.freire@emory.edu
+    affiliations: Emory University
+format:
+  clean-revealjs:
+    self-contained: true
+    code-overflow: wrap
+    footer: "[Aggregating Data](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-15/15-aggregating-data.html)"
+    drop:
+      button: true
+      engine: pyodide
+      pyodide:
+        packages:
+          - matplotlib
+          - micropip
+          - numpy
+          - pandas
+          - seaborn
+transition: slide
+transition-speed: default
+scrollable: true
+engine: jupyter
+revealjs-plugins:
+  - appearance
+  - drop
+  - fontawesome
+  - multimodal
+editor:
+  render-on-save: true
+---
+
+# Hello, everyone! 👋 <br> Nice to see you all again 😁 {background-color="#2d4563"}
+
+# Two quick things before we start 😉 {background-color="#2d4563"}
+
+## Some comments on quiz 02
+
+:::{style="margin-top: 90px; font-size: 32px;"}
+:::{.incremental}
+- The quiz has been graded and the grades are in Canvas
+- [You guys did really well!]{.alert} Congratulations! 🎉
+- What do you think about the quiz? Was it too easy? Too hard? Just right? 
+- If you have any question about the quiz, please let us know
+- Please do not forget that the assignment is due today 🤓
+:::
+:::
+
+## Jupyter Notebooks online 🌐
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+:::{.columns}
+:::{.column width="50%"}
+- New users find it challenging to install Python and Jupyter Notebook on their computers
+- So I've made a [Jupyter Notebook online]{.alert} that you can use to run Python code [without installing anything!]{.alert} 🤓
+- I've used [Pyodide](https://pyodide.org/en/stable/){data-modal-type="iframe"} and [JupyterLite](https://jupyterlite.readthedocs.io/){data-modal-type="iframe"} to run Python code in the browser
+- You can access it on the [Jupyter Lite tab on the course website](https://danilofreire.github.io/qtm350/){data-modal-type="iframe"}
+- The website is <https://danilofreire.github.io/qtm350/jupyter>
+:::
+
+:::{.column width="50%"}
+- It already comes with all packages we need for this class, such as NumPy, Pandas, Matplotlib, and Seaborn
+- You can install many other packages too! 📦
+- Not all Python packages work, but many do. Install them with 
+
+```python
+%pip install package-name
+```
+
+- You can also use it to run `R` and `JavaScript` code, as well as write `LaTeX` and `Markdown` documents
+- [Please download your files with the right-click menu before closing the browser!]{.alert}
+- Let me know if you find any bugs! 🐞
+:::
+:::
+:::
+
+# Today's plan 📅 {background-color="#2d4563"}
+
+## Aggregating data
+### Today we will...
+
+:::{style="margin-top: 30px; font-size: 30px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Learn about different ways to gather dataset characteristics
+- Learn how to aggregate data using Pandas using the `.agg()` method
+- Combine `.agg()` with `.groupby()` to aggregate data by groups
+- Use `.query()` together with those methods to filter and summarise data in one step
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center;"}
+![](figures/split-apply-combine.png)
+
+[Split-apply-combine strategy](https://jakevdp.github.io/PythonDataScienceHandbook/03.08-aggregation-and-grouping.html#GroupBy:-Split,-Apply,-Combine){data-modal-type="iframe"}
+:::
+:::
+:::
+:::
+
+## Import libraries and load data
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="50%"}
+- As usual, let's start by importing the libraries we need
+  
+```{python}
+#| echo: true
+#| eval: true
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+```
+
+- And load the dataset we will use today
+
+```{python}
+#| echo: true
+#| eval: true
+results = pd.read_csv("data_raw/results.csv")
+```
+
+- These data are part of the [Formula 1 dataset](https://www.kaggle.com/rohanrao/formula-1-world-championship-1950-2020){data-modal-type="iframe"} we used in the past
+
+:::{style="text-align: center;"}
+![](figures/codebook_races.png){width="85%"}
+:::
+:::
+
+:::{.column width="50%"}
+- Main information: `Field`, `Type`, `Key`, and `Description`
+- `Field` is the [name of the column]{.alert}
+- `Type` is the [data type]{.alert} of the column
+  - integer (`int`)
+  - string (`varchar` - "variable character")
+  - float (`float`)
+  - The number in parenthesis is the maximum number of characters/digits
+- `Key` is the [primary key of the table]{.alert}, also know as the identifier
+  - It is unique for each row and can be used to join tables (more on that later)
+- `Description` is a brief description of the column
+:::
+:::
+:::
+
+## Display the first few rows
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+```{python}
+#| echo: true
+#| eval: true
+results.head()
+```
+
+- See a random sample of the data using `sample`
+
+```{python}
+#| echo: true
+#| eval: true
+results.sample(5).sort_values("resultId")
+```
+:::
+
+## Get the column names and types
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+- We can get the column names and types using `dtypes`
+
+```{python}
+#| echo: true
+#| eval: true
+results.dtypes
+```
+
+- We can also get the column names using `columns`
+
+```{python}
+#| echo: true
+#| eval: true
+results.columns
+```
+:::
+
+## Try it yourself! 🤓 {#sec:exercise01}
+
+:::{style="margin-top: 30px; font-size: 28px;"}
+- How many rows does the dataset have?
+- How many unique values are there for the columns:
+  - `resultId`? 
+  - `raceId`?
+  - `driverId`?
+
+- [Hint]{.alert}: Use the [`len()`](https://docs.python.org/3/library/functions.html#len){data-modal-type="iframe"} and the [`pd.nunique()`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.nunique.html){data-modal-type="iframe"} functions (click on their names to see the documentation)
+- [[Appendix 01]{.button}](#sec:appendix01)
+:::
+
+# Group by and aggregate 📊 {background-color="#2d4563"}
+
+## Multi-line code
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+- You can split your code into multiple lines to make it easier to read
+- You just need to wrap the code in parentheses `()`
+  
+```{python}
+#| echo: true
+#| eval: true
+descriptives_multiline = (results["points"]
+                          .describe())
+descriptives_multiline
+```
+
+- This is the same as writing
+
+```{python}
+#| echo: true
+#| eval: true
+descriptives_singleline = results["points"].describe()
+descriptives_singleline
+```
+:::
+
+## Aggregate data using `.agg()`
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+- The `.agg()` subfunction computes aggregate statistics
+- The syntax is (`column_name`, `function_name`)
+- The first argument is the column name
+- The second argument is the function_name
+- The command works with single quotations '...' or double "..."
+
+```{python}
+#| echo: true
+#| eval: true
+# The functions in quotes are pandas functions.  len is not in quotes because it is a Python function
+# If you were to use 'len' (a string), pandas would look for a method named len in the DataFrame, 
+# which does not exist.
+results_agg = results.agg(mean_points = ('points','mean'),
+                          sd_points =   ('points','std'),
+                          min_points =  ('points','min'),
+                          max_points =  ('points','max'),
+                          count_obs   = ('points', len))
+
+display(results_agg.round(2)) # round to 2 decimal places
+```
+:::
+
+## Group and aggregate data using `.groupby()`
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="55%"}
+- The `.groupby()` method groups the data by a column
+- The `.agg()` method can be used to aggregate the data by group
+- The syntax is `df.groupby('column_name').agg(...)`
+- Let's see one example
+
+```{python}
+#| echo: true
+#| eval: true
+drivers_agg = (results.groupby("driverId")
+                      .agg(mean_points = ('points','mean'),
+                           sd_points =   ('points','std'),
+                           min_points =  ('points','min'),
+                           max_points =  ('points','max'),
+                           count_obs   = ('points',len)))
+
+```
+:::
+
+:::{.column width="45%"}
+```{python}
+#| echo: true
+#| eval: true
+drivers_agg
+```
+:::
+:::
+:::
+
+## Group and aggregate data using `.groupby()` 
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{style="text-align: center;"}
+![](figures/agg.png){width="50%"}
+:::
+
+- [Split-apply-combine strategy again](https://jakevdp.github.io/PythonDataScienceHandbook/03.08-aggregation-and-grouping.html#GroupBy:-Split,-Apply,-Combine){data-modal-type="iframe"}
+- [Split]{.alert}: Split the dataset into groups, here by `driverId`
+- [Apply]{.alert}: Apply a function to each group, here the mean, standard deviation, minimum, maximum, and count of `points`
+- [Combine]{.alert}: Combine the results into a single data frame
+- The result is a data frame with the statistics for each driver
+:::
+
+## Group and aggregate data using `.groupby()` - multiple groups
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="55%"}
+- The syntax we used before works for one group, but it is easy to extend it to multiple groups
+- You can [pass a list of columns]{.alert} to the `.groupby()` method
+- `df.groupby(['column1', 'column2']).agg(...)`
+- `constructorId` is the team identifier
+
+```{python}
+#| echo: true
+#| eval: true
+teamrace_agg = (results.groupby(["raceId","constructorId"])
+                       .agg(mean_points = ('points','mean'),
+                            sd_points =   ('points','std'),
+                            min_points =  ('points','min'),
+                            max_points =  ('points','max'),
+                            count_obs   = ('points',len)))
+
+```
+:::
+
+:::{.column width="45%"}
+```{python}
+#| echo: true
+#| eval: true
+teamrace_agg.round(2)
+```
+:::
+:::
+:::
+
+# Filtering + <br> Grouping + <br> Aggregating 🤓 {background-color="#2d4563"}
+
+## Filtering data using `.query()`
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="57%"}
+- The `.query()` method filters the data, as you know well by now
+- We can combine `.query()` with `.groupby()` and `.agg()` to filter, group, and aggregate data in one step
+
+```{python}
+#| echo: true
+#| eval: true
+teamrace_agg = (results.query("raceId >= 500")
+                       .groupby(["raceId","constructorId"])
+                        .agg(mean_points = ('points','mean'),
+                             sd_points =   ('points','std'),
+                             min_points =  ('points','min'),
+                             max_points =  ('points','max'),
+                             count_obs   = ('points',len)))
+``` 
+:::
+
+:::{.column width="43%"}
+```{python}
+#| echo: true
+#| eval: true
+teamrace_agg.round(2)
+```
+:::
+:::
+:::
+
+## Try it yourself! 🤓 {#sec:exercise02}
+
+:::{style="margin-top: 30px; font-size: 28px;"}
+- Create a new dataset by chaining groups by `constructorId` (the team) then compute the average number of `points`
+- Add a chain `.sort_values(...,ascending = False)` to sort by team points in descending order
+- [[Appendix 02]{.button}](#sec:appendix02)
+:::
+
+## Different functions for different columns
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+- You can use different functions for different columns too!
+- You should specify the column name and the function for each column in a dictionary
+- If you want to add more than one function for a column, you can use a list with `['function1', 'function2']`
+- The syntax is `df.agg({'column1': 'function1', 'column2': 'function2'})`
+
+```{python}
+#| echo: true
+#| eval: true
+results.agg({'laps': ['min', 'max', len]}).round(2) # one variable
+```
+
+```{python}
+#| echo: true
+#| eval: true
+results.agg({'points': 'mean',
+             'positionOrder': 'max',
+             'laps': ['min', 'max', len]}).round(2) # multiple variables
+```
+:::
+
+# Relative statistics within group 📊 {background-color="#2d4563"}
+
+## Relative statistics within group
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="50%"}
+- We can compute relative statistics within groups and add them to the data frame
+- When we add new columns to a dataset, we call this [merging]{.alert} the data
+- We can use the `.merge()` method to merge the data
+
+:::{style="text-align: center;"}
+![](figures/merge_stats.png){width="95%"}
+:::
+:::
+
+:::{.column width="50%"}
+- Let's see an example. We'll use the `drivers_agg` data frame we created before and merge it with the original `results` data frame
+
+```{python}
+#| echo: true
+#| eval: true
+drivers_agg.round(2)
+```
+:::
+:::
+:::
+
+## Relative statistics within group
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="50%"}
+- And here is the `results` data frame
+
+```{python}
+#| echo: true
+#| eval: true
+results.head()
+```
+:::
+
+:::{.column width="50%"}
+- Now we can merge the two data frames using the `driverId` column
+- Why do we use `on='driverId'`? Because `driverId` is the column that identifies the driver in both data frames
+
+```{python}
+#| echo: true
+#| eval: true
+results_merge = pd.merge(results,
+                         drivers_agg,
+                         on = "driverId",
+                         how = "left")
+```
+
+- The `how = "left"` argument keeps all rows from the `results` data frame and adds the statistics from `drivers_agg` to it
+- The result is a new data frame with the statistics for each driver
+:::
+:::
+:::
+
+## Relative statistics within group
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+- Let's see the first few rows of the merged data frame
+
+```{python}
+#| echo: true
+#| eval: true
+results_merge.head()
+```
+
+- We can see that the new columns `mean_points`, `sd_points`, `min_points`, `max_points`, and `count_obs` were added to the data frame
+
+```{python}
+#| echo: true
+#| eval: true
+results_merge.columns
+```
+:::
+
+## Try it yourself! 🤓 {#sec:exercise03}
+
+:::{style="margin-top: 30px; font-size: 28px;"}
+- Compute a scatter plot with `points` (y-axis) vs `mean_points` (x-axis)
+- Note: This plots tells you how much a driver's performance on individual races deviates from their overall average
+- [[Appendix 03]{.button}](#sec:appendix03)
+:::
+
+## Try it yourself! 🤓 {#sec:exercise04}
+
+:::{style="margin-top: 30px; font-size: 28px;"}
+- Merge the `teamrace_agg` data into `results`
+- This time use the option: ```on = ["raceId","constructorId"]```
+- [[Appendix 04]{.button}](#sec:appendix04)
+:::
+
+## Appendix 01 {#sec:appendix01}
+
+:::{style="margin-top: 30px; font-size: 25px;"}
+- Let's start by counting the number of rows in the dataset
+
+```{python}
+#| echo: true
+#| eval: true
+len(results)
+```
+
+- Now let's count the number of unique values for the columns `resultId`, `raceId`, and `driverId`
+
+```{python}
+#| echo: true
+#| eval: true
+results.resultId.nunique()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+results.raceId.nunique()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+results.driverId.nunique()
+```
+:::
+
+## Appendix 01
+
+:::{style="margin-top: 30px; font-size: 25px;"}
+- You could also used `value_counts()` to get the same information
+
+```{python}
+#| echo: true
+#| eval: true
+results.resultId.value_counts()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+results.raceId.value_counts()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+results.driverId.value_counts()
+```
+
+- This function returns the number of times each unique value appears in the column
+
+[[Back to exercise]{.button}](#sec:exercise01)
+:::
+
+## Appendix 02 {#sec:appendix02}
+
+:::{style="margin-top: 30px; font-size: 25px;"}
+- Let's start by grouping the data by `constructorId` and computing the average number of `points`
+
+```{python}
+#| echo: true
+#| eval: true
+team_agg = (results.groupby("constructorId")
+                   .agg(mean_points = ('points','mean')))
+```
+
+- Now let's sort the data by `mean_points` in descending order
+- We can use the `sort_values()` method
+
+```{python}
+#| echo: true
+#| eval: true
+team_agg.sort_values("mean_points", ascending = False).round(2)
+```
+
+[[Back to exercise]{.button}](#sec:exercise02)
+:::
+
+## Appendix 03 {#sec:appendix03}
+
+:::{style="margin-top: 30px; font-size: 25px;"}
+```{python}
+#| echo: true
+#| eval: true
+plt.figure(figsize=(10,6))
+plt.scatter(results_merge["mean_points"], results_merge["points"])
+plt.xlabel("Mean Points")
+plt.ylabel("Points")
+plt.title("Points vs Mean Points")
+plt.show()
+```
+
+- This plots tells you how much a driver's performance on individual races deviates from their overall average
+
+[[Back to exercise]{.button}](#sec:exercise03)
+:::
+
+## Appendix 04 {#sec:appendix04}
+
+:::{style="margin-top: 30px; font-size: 25px;"}
+- Let's merge the `teamrace_agg` data into `results`
+- This time use the option: ```on = ["raceId","constructorId"]```
+- Since we filtered the data before (`raceId >= 500`), we will see some missing cases in the merged data frame
+
+```{python}
+#| echo: true
+#| eval: true
+results_merge = pd.merge(results,
+                         teamrace_agg,
+                         on = ["raceId","constructorId"],
+                         how = "left")
+results_merge.round(2)
+```
+
+:::
+
+## Appendix 04
+
+:::{style="margin-top: 30px; font-size: 25px;"}
+- We can remove the missing cases using the `dropna()` method
+```{python}
+#| echo: true
+#| eval: true
+results_merge = pd.merge(results,
+                         teamrace_agg,
+                         on = ["raceId","constructorId"],
+                         how = "left")
+results_merge.round(2).dropna()
+```
+
+[[Back to exercise]{.button}](#sec:exercise04)
+:::
+
+

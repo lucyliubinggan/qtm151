@@ -30,53 +30,63 @@ The course covers the following topics, with corresponding lecture
 materials available in the [lectures
 folder](https://github.com/danilofreire/qtm151/tree/main/lectures):
 
-- Wednesday, August 28: [Lecture 01: Welcome to QTM 151 - Introduction](https://danilofreire.github.io/qtm151/lectures/lecture-01/01-introduction.html). [Course Tutorials: How to Install Anaconda, Jupyter, PostgreSQL, VSCode, and Open a Free Educational Account on GitHub](https://danilofreire.github.io/qtm151/tutorials/tutorials.html).
+- Wednesday, August 28: [Lecture 01: Welcome to QTM 151 - Introduction](https://danilofreire.github.io/qtm151/lectures/lecture-01/01-introduction.html).
+  Please make sure to install the necessary software for the course by following the [Course Tutorials: How to Install Anaconda, Jupyter, PostgreSQL, VSCode, and Open a Free Educational Account on GitHub](https://danilofreire.github.io/qtm151/tutorials/tutorials.html).
 
 - Monday, September 02: Labour Day (no class)
 
-- Wednesday, September 04: [Lecture 02: GitHub Review](https://danilofreire.github.io/qtm151/lectures/lecture-02/02-github-review.html) and [Introduction to Jupyter Notebooks](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-02/02-jupyter.ipynb)
+- Wednesday, September 04: [Lecture 02: GitHub Review](https://danilofreire.github.io/qtm151/lectures/lecture-02/02-github-review.html), [Introduction to Jupyter Notebooks](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-02/02-jupyter.ipynb).
+  - Extra lecture: [Lecture slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-02/02-github-jupyter.html#/title-slide). [Video recording](https://emory-my.sharepoint.com/:v:/g/personal/dafreir_emory_edu/EaTyfePUASBJlUyB-0HuGKkB9YyPc0kS3DARtdAzVst8PQ?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D&e=5BO5Zi).
   - **Assignment 01:** [Problem Set 01](https://github.com/danilofreire/qtm151/blob/main/assignments/01-assignment.ipynb)
 
-- Monday, September 09: [Lecture 03: Variables and Lists](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-03/03-variables-lists.ipynb)
+- Monday, September 09: Lecture 03: Variables and Lists. [Jupyter Notebook](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-03/03-variables-lists.ipynb), [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-03/03-variables-lists.html).
+  - [Kahoot Quiz](https://play.kahoot.it/v2/?quizId=9d9db161-5a1e-44e9-9c76-d06959e8979d&hostId=05eb977d-4f8a-440e-9e45-95212b29d103).
 
-- Wednesday, September 11: [Lecture 04: Mathematical Operations, Arrays, and Random Numbers](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-04/04-maths-arrays-random.ipynb)
+- Wednesday, September 11: Lecture 04: Mathematical Operations, Arrays, and Random Numbers. [Jupyter Notebook](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-04/04-maths-arrays-random.ipynb), [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-04/04-maths-arrays-random.html)
+  - [Kahoot Quiz](https://play.kahoot.it/v2/?quizId=271358de-fa9b-4fd0-8846-c18c72e81cc7&hostId=05eb977d-4f8a-440e-9e45-95212b29d103)
   - **Assignment 01 due (5%)**
   - **Assignment 02:** [Problem Set 02](https://github.com/danilofreire/qtm151/blob/main/assignments/02-assignment.ipynb)
 
-- Monday, September 16: [Lecture 05: Boolean Variables and If/Else Statements](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-05/05-boolean-if-else.ipynb)
+- Monday, September 16: Lecture 05: Boolean Variables and If/Else Statements. [Jupyter Notebook](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-05/05-boolean-if-else.ipynb), [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-05/05-boolean-if-else.html).
+  - [Kahoot Quiz](https://play.kahoot.it/v2/?quizId=74882759-c092-4beb-9221-c1306d24d877&hostId=05eb977d-4f8a-440e-9e45-95212b29d103).
 
-- Wednesday, September 18: [Lecture 06: While Loops and For Loops](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-06/06-while-for.ipynb)
+- Wednesday, September 18: Lecture 06: While Loops and For Loops. [Jupyter Notebook](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-06/06-while-for.ipynb), [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-06/06-while-for.html)
+  - [Kahoot Quiz](https://play.kahoot.it/v2/?quizId=48b0c75d-f205-46fc-b9ec-069f9ddd5a34&hostId=05eb977d-4f8a-440e-9e45-95212b29d103)
   - **Assignment 02 due (5%)**
   - **Assignment 03:** [Problem Set 03](https://github.com/danilofreire/qtm151/blob/main/assignments/03-assignment.ipynb)
 
-- Monday, September 23: [Lecture 07: Applications 1: Simulation Studies](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-07/07-applications-simulation.ipynb)
+- Monday, September 23: Lecture 07: Applications 1: Simulation Studies. [Jupyter Notebook](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-07/07-applications-simulation.ipynb). [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-07/07-applications-simulation.html).
+  - [Kahoot Quiz](https://play.kahoot.it/v2/?quizId=857d136c-31dc-458c-9d3d-ce987f4ef6f2&hostId=05eb977d-4f8a-440e-9e45-95212b29d103).
 
-- Wednesday, September 25: [Lecture 08: Functions and Arguments](https://danilofreire.github.io/qtm151/lectures/lecture-08/08-functions-arguments.ipynb)
+- Wednesday, September 25: Lecture 08: Functions and Arguments. [Jupyter Notebook](https://danilofreire.github.io/qtm151/lectures/lecture-08/08-functions-arguments.ipynb). [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-08/08-functions-arguments.html).
+  - [Kahoot Quiz](https://play.kahoot.it/v2/?quizId=94eb5781-33ec-4d12-a1bd-0382c96a05c3&hostId=05eb977d-4f8a-440e-9e45-95212b29d103).
   - **Assignment 03 due (5%)**
   - **Assignment 04:** [Problem Set 04](https://github.com/danilofreire/qtm151/blob/main/assignments/04-assignment.ipynb)
 
-- Monday, September 30: [Lecture 09: Global and Local Variables](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-09/09-global-local.ipynb)
+- Monday, September 30: Lecture 09: Global and Local Variables. [Jupyter Notebook](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-09/09-global-local.ipynb). [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-09/09-global-local.html).
+  - [Kahoot Quiz](https://play.kahoot.it/v2/?quizId=e5422be1-4423-436b-9d99-895879b4d906&hostId=05eb977d-4f8a-440e-9e45-95212b29d103)
 
 - Wednesday, October 02: [Lecture 10: Quiz 01: Application 02 - Operations over Multiple Datasets (6%)](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-10/10-operations-multiple-datasets.ipynb)
   - **Assignment 05:** [Problem Set 05](https://github.com/danilofreire/qtm151/blob/main/assignments/05-assignment.ipynb)
 
 - Friday, October 04: **Assignment 04 due (5%)**
 
-- Monday, October 07: [Lecture 11: Subsetting Data](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-11/11-subsetting-data.ipynb)
+- Monday, October 07: Lecture 11: Subsetting Data. [Jupyter Notebook](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-11/11-subsetting-data.ipynb). [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-11/11-subsetting-data.html).
 
-- Wednesday, October 09: [Lecture 12: Application 03: Linear Models](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-12/12-linear-models.ipynb)
+- Wednesday, October 09: Lecture 12: Application 03: Linear Models. [Jupyter Notebook](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-12/12-linear-models.ipynb). [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-12/12-linear-models.html).
+  - [Kahoot Quiz](https://play.kahoot.it/v2/?quizId=3c58a2b9-4137-4723-a1d0-08beb8b018d5&hostId=05eb977d-4f8a-440e-9e45-95212b29d103)
   - **Assignment 05 due (5%)**
-  - **Assignment 06:** [Problem Set 06](https://github.com/danilofreire/qtm151/blob/main/assignments/06-assignment.ipynb)
+  - **Assignment 06:** [Problem Set 06](https://github.com/danilofreire/qtm151/tree/main/assignments/06-assignment)
 
 - Monday, October 14: Fall Break (no class)
 
-- Wednesday, October 16: [Lecture 13: Creating and Replacing Variables](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-13/13-creating-replacing-variables.ipynb)
+- Wednesday, October 16: Lecture 13: Replacing and Recoding Variables. [Jupyter Notebook](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-13/13-replacing-recoding-variables.ipynb). [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-13/13-replacing-recoding-variables.html).
   - **Assignment 06 due (5%)**
-  - **Assignment 07:** [Problem Set 07](https://github.com/danilofreire/qtm151/blob/main/assignments/07-assignment.ipynb)
+  - **Assignment 07:** [Problem Set 07](https://github.com/danilofreire/qtm151/tree/main/assignments/07-assignment)
 
-- Monday, October 21: [Lecture 14: Quiz 2: Application 4: Random Assignment (6%)](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-14/14-random-assignment.ipynb)
+- Monday, October 21: [Lecture 14: Quiz 2: Application 04: Random Assignment (6%)](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-14/14-random-assignment.ipynb)
 
-- Wednesday, October 23: [Lecture 15: Aggregating Data](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-15/15-aggregating-data.ipynb)
+- Wednesday, October 23: Lecture 15: Aggregating Data. [Jupyter Notebook](https://github.com/danilofreire/qtm151/blob/main/lectures/lecture-15/15-aggregating-data.ipynb). [Lecture Slides](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-15/15-aggregating-data.html).
   - **Assignment 07 due (5%)**
   - **Assignment 08:** [Problem Set 08](https://github.com/danilofreire/qtm151/blob/main/assignments/08-assignment.ipynb)
 
@@ -112,7 +122,7 @@ folder](https://github.com/danilofreire/qtm151/tree/main/lectures):
 
 - Monday, December 09: **Final Project due (20%)**
 
-Each lecture folder contains an HTML file or a Jupyter notebook (`.ipynb`) with code examples and explanations, along with any additional resources or datasets used in the lecture.
+Each lecture folder contains an HTML file and a Jupyter notebook (`.ipynb`) with code examples and explanations, along with any additional resources or datasets used in the lecture.
 
 ### Assignments and Quizzes
 
@@ -159,6 +169,7 @@ To supplement your learning, you may find the following resources helpful:
 ### Books
 
 - [Python for Data Analysis](https://wesmckinney.com/book/) by Wes McKinney
+- [Python Data Science Handbook](https://jakevdp.github.io/PythonDataScienceHandbook/) by Jake VanderPlas
 - [Elements of Data Science](https://allendowney.github.io/ElementsOfDataScience/README.html) by Allen Downey
 - [Automate the Boring Stuff with Python](https://automatetheboringstuff.com) by Al Sweigart
 - [Python for Everybody](https://www.py4e.com/book.php) by Charles Severance
@@ -185,7 +196,7 @@ The syllabus also includes a list of additional readings and resources for each 
 ## Contact Information
 
 - Instructor: Danilo Freire
-- Email: danilo.freire@emory.edu
+- Email: <danilo.freire@emory.edu>
 - Office Hours: At your convenience, please schedule an appointment via email.
 
 ## Academic Integrity

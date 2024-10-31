@@ -1,0 +1,607 @@
+---
+title: QTM 151 - Introduction to Stats Computing II
+subtitle: Lecture 16 - Merging Data
+date: 2024-10-28
+date-format: "DD MMMM, YYYY"
+author:
+  - name: Danilo Freire
+    email: danilo.freire@emory.edu
+    affiliations: Emory University
+format:
+  clean-revealjs:
+    self-contained: true
+    code-overflow: wrap
+    footer: "[Merging Data](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-16/16-merging-data.html)"
+    drop:
+      button: true
+      engine: pyodide
+      pyodide:
+        packages:
+          - matplotlib
+          - micropip
+          - numpy
+          - pandas
+          - seaborn
+transition: slide
+transition-speed: default
+scrollable: true
+engine: jupyter
+revealjs-plugins:
+  - appearance
+  - drop
+  - fontawesome
+  - multimodal
+editor:
+  render-on-save: true
+---
+
+# Hope your week is off to a good start 😊 {background-color="#2d4563"}
+
+# Brief recap 📚 {background-color="#2d4563"}
+
+## Last week we saw:
+
+:::{style="margin-top: 30px; font-size 24px;"}
+:::{.columns}
+:::{.column width=50%}
+- How to aggregate data using Pandas using the `.agg()` method
+- How to combine `.agg()` with `.groupby()` 
+- Use `.query()` to filter and summarise data
+- Note: assignment 07 has been marked and feedback provided
+- Assignment 08 is due on [Friday]{.alert} 
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center;"}
+[![](figures/agg.png)]{data-modal-type="image"}
+:::
+:::
+:::
+:::
+
+# Today's plan 📅 {background-color="#2d4563"}
+
+## What we will cover today:
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+:::{.columns}
+:::{.column width=50%}
+- We will dive a little deeper into data manipulation
+- Specifically, we will see other ways to combine data
+- We will learn how to concatenate and merge data using Pandas
+- Explain what dictonaries are and how to use them in Python
+- We will see the importance of cleaning data before merging
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center;"}
+[![](figures/join.png)]{data-modal-type="image"}
+:::
+:::
+:::
+:::
+
+# Let's get started 🚀 {background-color="#2d4563"}
+
+## Entity relationship diagrams
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+- First, let's load the libraries and data we will use today
+```{python}
+#| echo: true
+#| eval: true
+#| code-fold: false
+import numpy as np
+import pandas as pd
+
+results_raw  = pd.read_csv("data_raw/results.csv")
+races_raw    = pd.read_csv("data_raw/races.csv")
+circuits_raw = pd.read_csv("data_raw/circuits.csv")
+```
+
+- Multi-file datasets can be visualised with an [Entity Relationship Diagram](https://en.wikipedia.org/wiki/Entity%E2%80%93relationship_model){data-modal-type="iframe"}
+- An [entity]{.alert} represents people, concepts, or events about which data are stored
+- An [attribute]{.alert} is a property or characteristic of an entity, such as a name or date
+- A [relationship]{.alert} is an association between entities, which can be one-to-one, one-to-many, or many-to-many
+
+| Type         | Description                                      | Example                        |
+|--------------|--------------------------------------------------|--------------------------------|
+| One-to-One   | One entity relates to exactly one other entity   | One student, one mailing address |
+| One-to-Many  | One entity relates to multiple instances of another entity | One store, many departments |
+| Many-to-Many | Multiple instances of both entities relate to each other | Students and courses         |
+:::
+
+## Entity relationship diagrams
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+[![](figures/erd_f1_simple.png)]{width="80%" data-modal-type="image"}
+:::
+
+## Let's have a look at the data 📊
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+```{python}
+#| echo: true
+#| eval: true
+results_raw.head(10)
+```
+:::
+
+## Let's have a look at the data 📊
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+```{python}
+#| echo: true
+#| eval: true
+races_raw.head(10) 
+```
+:::
+
+
+## Let's have a look at the data 📊
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+```{python}
+#| echo: true
+#| eval: true
+circuits_raw.head(10) 
+```
+:::
+
+
+## Let's have a look at the data 📊
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+- We extract all the unique values in `races_raw["name"]` and `circuits_raw["name"]`
+- We use `sort_values()` to make it easier to compare the variables
+
+```{python}
+#| echo: true
+#| eval: true  
+unique_data_races = pd.unique(races_raw["name"].sort_values())
+print(unique_data_races)
+```
+:::
+
+## Let's have a look at the data 📊
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- We do the same for the `circuits_raw["name"]` variable
+
+```{python}
+#| echo: true
+#| eval: true
+unique_data_circuits = pd.unique(circuits_raw["name"].sort_values())
+print(unique_data_circuits)
+```
+:::
+
+## Hmmm, the columns are not the same 🤔
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+- We can see that the names in the `races_raw` and `circuits_raw` datasets are different
+- We should rename the columns to ensure we're not merging the wrong data or creating duplicates
+- We can use the [`rename()`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html){data-modal-type="iframe"} method to do this
+- But first we need to understand [what a dictionary is and how it can be used in Python](https://www.w3schools.com/python/python_dictionaries.asp){data-modal-type="iframe"}
+:::
+
+# Dictionaries in Python 📚 {background-color="#2d4563"}
+
+## What is a dictionary?
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+:::{.columns}
+:::{.column width=50%}
+- A dictionary is a collection of [key-value pairs]{.alert}
+- Each [key in a dictionary is unique]{.alert} and maps to a value
+- You can access values by referencing their keys using square brackets (`[]`)
+- Dictionaries are [defined using curly braces `{}` with key-value pairs separated by colons (`:`)]{.alert}
+- Fields are separated by commas (`,`)
+- Example of a dictionary: `my_dict = {"name": "Danilo", "course": "QTM151", "city": "Atlanta"}`
+- You can add, modify, or delete key-value pairs in a dictionary
+- Dictionaries are mutable, meaning they can be changed after creation
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center;"}
+[![](figures/python_dictionary-example.png)]{data-modal-type="image"}
+[![](figures/dictionaries-vs-lists-in-python.webp)]{data-modal-type="image"}
+:::
+:::
+:::
+:::
+
+## Dictionaries + Pandas
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width=50%}
+- Let's create a dictionary in Python
+
+```{python}
+#| echo: true
+#| eval: true
+car_dictionary = {"car_model": ["Ferrari","Tesla","BMW"],
+                  "year": ["2018","2023","2022"]}
+car_dictionary
+```
+
+- Dictionaries can have any data type as values, including lists or arrays (even other dictionaries!)
+
+```{python}
+#| echo: true
+#| eval: true
+matrix_dict = {'A':np.array([[1,2,3], [2,4,5]]), 'string': 'ABC'}
+matrix_dict
+```
+
+- We can subset a dictionary using the key
+
+```{python}
+#| echo: true
+#| eval: true
+car_dictionary['car_model']
+```
+
+- We can also add new key-value pairs to a dictionary
+
+```{python}
+#| echo: true
+#| eval: true
+car_dictionary['colour'] = ["red","blue","black"]
+car_dictionary
+```
+:::
+
+:::{.column width=50%}
+- We can delete key-value pairs using the `del` keyword
+
+```{python}
+#| echo: true
+#| eval: true
+del car_dictionary['colour']
+car_dictionary.keys()
+```
+
+- To create a Pandas DataFrame from a dictionary, we use the `pd.DataFrame()` function
+  
+```{python}
+#| echo: true
+#| eval: true
+car_dictionary = {"car_model": ["Ferrari","Tesla","BMW","Something"],
+                  "year": ["2018","2023","2022", "1993"]}
+
+df = pd.DataFrame(car_dictionary)
+df
+```
+:::
+:::
+:::
+
+## Let's rename the columns 🔄
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+- We rename columns with a dictionary using the `{old_name: new_name}` format
+- We pass the dictionary to the `rename()` method using the `columns` argument
+
+```{python}
+#| echo: true
+#| eval: true
+circuits_raw.rename(columns={'name':'circuit_name'})
+```
+:::
+
+## Let's rename the columns 🔄
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- Let's save the changes to a new `circuits` DataFrame
+
+```{python}
+#| echo: true
+#| eval: true
+dict_rename_circuits = {"name": "circuit_name"}
+circuits = circuits_raw.rename(columns = dict_rename_circuits)
+circuits.head()
+```
+:::
+
+:::{.column width=50%}
+- Let's see if the columns have been renamed
+
+```{python}
+#| echo: true
+#| eval: true
+print(circuits_raw.columns.values)
+```
+
+```{python}
+#| echo: true
+#| eval: true
+print(circuits.columns.values)
+```
+
+- It has worked! 🎉
+:::
+:::
+:::
+
+## Try it yourself! 🧠 {#sec:exercise01}
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+- Create a dictionary to rename `name` to `race_name`
+- Rename this column in the `races_raw` dataset
+- Store the output in a new dataset called `races`
+- [[Appendix 01]{.button}](#sec:appendix01)
+:::
+
+# Merge data in Pandas 🔄 {background-color="#2d4563"}
+
+## Using `pd.merge()` to combine data
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- We can use the [`pd.merge()`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.merge.html){data-modal-type="iframe"} function to combine data
+- First, we need to extract the columns we want to merge and the type of join we want to perform
+- The `on` argument specifies the column to merge on
+- The `how` argument specifies the type of join to perform
+
+```{python}
+#| echo: true
+#| eval: true
+circuits[["circuitId","circuit_name"]].head()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+circuits.shape[0] # rows
+```
+:::
+
+:::{.column width=50%}
+[![](figures/joins.jpg)]{data-modal-type="image"}
+:::
+:::
+:::
+
+## Using `pd.merge()` to combine data
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- `pd.merge(data1, data2, on, how)`
+- Strive to merge only specific columns of `data2`
+- Avoid merging all columns
+- Keeping it simple gives you more control over the output
+
+```{python}
+#| echo: true
+#| eval: true
+# The "pd.merge()" command combines the information from both datasets
+# The first argument is the "primary" datasets
+# The second argument is the "secondary" dataset (must include the "on" column)
+# The "on" is the common variable that is used for merging
+# how = "left" tells Python that the left dataset is the primary one
+
+races_merge = pd.merge(races_raw[['raceId', 'year', 'circuitId']],
+                       circuits[["circuitId","circuit_name", "location"]],
+                       on = "circuitId",
+                       how = "left")
+```
+:::
+
+## Using `pd.merge()` to combine data
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- Let's see the results of the merge
+```{python}
+#| echo: true
+#| eval: true
+races_merge
+```
+:::
+
+## Using `pd.merge()` to combine data
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- We can extract the columns we want to see
+```{python}
+#| echo: true
+#| eval: true
+races_merge[["raceId",  "circuitId","circuit_name"]].sort_values(by = "circuit_name")
+```
+:::
+
+:::{.column width=50%}
+- Another example of a merge
+
+```{python}
+#| echo: true
+#| eval: true
+results_merge = pd.merge(results_raw,
+                         races_raw[["raceId","date"]],
+                         on = "raceId",
+                         how = "left")
+
+results_merge.head()
+```
+:::
+:::
+:::
+
+## Common pitfall: What happens if you don't rename the columns?
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- If you don't rename the columns, you may end up with duplicate columns
+- This can make it difficult to understand the data
+- It can also lead to errors when merging data
+- The following code merges the raw data which has the `name` column in `races_raw` and `circuits_raw`
+
+```{python}
+#| echo: true
+#| eval: true
+races_merge_pitfall = pd.merge(races_raw,
+                               circuits_raw[["circuitId","name"]],
+                               on = "circuitId",
+                               how = "left")
+```
+:::
+
+:::{.column width=50%}
+- Let's see the results of the merge
+
+```{python}
+#| echo: true
+#| eval: true
+print(races_merge_pitfall.columns.values)
+```
+
+- We can see that the `name` column has been duplicated
+- Python appends `_x` and `_y` to the column names to differentiate them
+:::
+:::
+:::
+
+## Try it yourself! 🧠 {#sec:exercise02}
+
+:::{style="margin-top: 30px; font-size: 25px;"}
+- Rename the columns `name_x` and `name_y` in the dataset `races_merge_pitfall` to `race_name` and `circuit_name`
+- HINT: Create a dictionary and use `.rename()`
+- [[Appendix 02]{.button}](#sec:appendix02)
+:::
+
+## Try it yourself! 🧠 {#sec:exercise03}
+
+:::{style="margin-top: 30px; font-size: 25px;"}
+- Merge the column `alt`, `lng`, and `lat` into the `races` data using `pd.merge()`
+- HINT: Use the `circuitId` as the key
+- [[Appendix 03]{.button}](#sec:appendix03)
+:::
+
+## Concatenating data in Pandas
+### `pd.concat()`
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- We can use the [`pd.concat()`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html){data-modal-type="iframe"} function to concatenate data
+- We can concatenate data along the rows or columns
+- The method works best if columns are identical
+- There are also other advanced options if they are not, please check [the documentation for more information](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html){data-modal-type="iframe"}
+
+- Let's use `.query()` to split the data into different parts
+
+```{python}
+#| echo: true
+#| eval: true
+circuits['country'].unique()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+circuits_spain = circuits.query('country == "Spain"')
+circuits_usa = circuits.query('country == "United States" | country == "USA"')
+circuits_malaysia = circuits.query('country == "Malaysia"')
+```
+:::
+
+## Concatenating data in Pandas
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+```{python}
+#| echo: true
+#| eval: true
+circuits_concat = pd.concat([circuits_spain, circuits_usa, circuits_malaysia])
+circuits_concat.head()
+```
+:::
+
+## Concatenating data in Pandas
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- If we drop observations from the original dataset, they will be removed from the concatenated dataset (`NaN` values will be added)
+
+```{python}
+#| echo: true
+#| eval: true
+circuits_spain_drop = circuits_spain.drop(columns=['circuitRef', 'location'])
+pd.concat([circuits_spain_drop, circuits_usa])
+```
+:::
+
+## Try it yourself! 🧠 {#sec:exercise04}
+
+:::{style="margin-top: 30px; font-size: 25px;"}
+- Concatenate the USA and Malaysia datasets
+- [[Appendix 04]{.button}](#sec:appendix04)
+:::
+
+# And that's it for today! 🎉 {background-color="#2d4563"}
+
+# Have a very nice week! 😊 {background-color="#2d4563"}
+
+## Appendix 01 {#sec:appendix01}
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+```{python}
+#| echo: true
+#| eval: true
+dict_rename = {"name": "race_name"}
+races_raw.rename(columns = dict_rename).head()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+races = races_raw.rename(columns = dict_rename)
+races.columns
+```
+
+[[Back to Exercise 01]{.button}](#sec:exercise01)
+:::
+
+## Appendix 02 {#sec:appendix02}
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+```{python}
+#| echo: true
+#| eval: true
+rename = {"name_x": "race_name", "name_y": "circuit_name"}
+races_merge_pitfall.rename(columns = rename).info()
+```
+
+[[Back to Exercise 02]{.button}](#sec:exercise02)
+:::
+
+## Appendix 03 {#sec:appendix03}
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+```{python}
+#| echo: true
+#| eval: true
+races02 = pd.merge(races,
+                   circuits[["circuitId","alt","lng","lat"]],
+                   on = "circuitId",
+                   how = "left")
+races02.head()
+```
+
+[[Back to Exercise 03]{.button}](#sec:exercise03)
+:::
+
+## Appendix 04 {#sec:appendix04}
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+```{python}
+#| echo: true
+#| eval: true
+circuits_usa_malaysia = pd.concat([circuits_usa, circuits_malaysia])
+circuits_usa_malaysia.head()
+```
+
+[[Back to Exercise 04]{.button}](#sec:exercise04)
+:::

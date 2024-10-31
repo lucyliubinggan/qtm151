@@ -1,0 +1,736 @@
+---
+title: QTM 151 - Introduction to Statistical Computing II
+subtitle: Lecture 17 - Introduction to SQL
+date: 2024-10-30
+date-format: "DD MMMM, YYYY"
+author:
+  - name: Danilo Freire
+    email: danilo.freire@emory.edu
+    affiliations: Emory University
+format:
+  clean-revealjs:
+    self-contained: true
+    code-overflow: wrap
+    footer: "[Introduction to SQL](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-17/17-introduction-sql.html)"
+transition: slide
+transition-speed: default
+scrollable: true
+engine: jupyter
+revealjs-plugins:
+  - multimodal
+editor:
+  render-on-save: true
+---
+
+# Hello, everyone! 😊 <br> Nice to see you again! {background-color="#2d4563"}
+
+# Some reminders 🤓 {background-color="#2d4563"}
+
+## Final Project 📖
+
+:::{style="margin-top: 50px; font-size: 28px;"}
+- **Task**: Write a report on a data analysis project based on the Formula 1 datasets
+- **Groups**: 3-4 students
+- **Due date**: December 9th
+- **Submission**: HTML file from Jupyter Notebook
+- **Resources**: [GitHub repository](https://github.com/danilofreire/qtm151/tree/main/final-project)
+- **More information**: [Final Project Instructions](https://github.com/danilofreire/qtm151/blob/main/final-project/final-project.pdf)
+:::
+
+## Other reminders 📝
+
+:::{style="margin-top: 50px; font-size: 24px;"}
+:::{.columns}
+:::{.column width="50%"}
+#### Assignments
+- Assignment 08 is due [this Friday]{.alert}, not today
+- Why? My mistake! I posted it in the wrong folder on Canvas 😅
+- So you guys have a few more days to submit it 😉
+- Assignment 09 will be posted later today
+:::
+
+:::{.column width="50%"}
+#### Quizzes
+- We will have three quizzes until the end of the semester
+- Why more quizzes now? Because you are more familiar with the content and are doing great! 🚀
+- The next quiz will be on November 4th (lecture 18) and [it will cover Python, not SQL]{.alert}
+- As usual, I will post a repository link right before the quiz starts
+- But so far you guys are doing very well, congratulations! 🎉
+
+:::{.incremental}
+- [So let's move on to today's topic: **Introduction to SQL**]{.alert} 📊🧑🏻‍💻👩🏼‍💻
+:::
+:::
+:::
+:::
+
+# What is SQL? 🤔 {background-color="#2d4563"}
+
+## What is SQL?
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- [SQL](https://en.wikipedia.org/wiki/SQL){data-modal-type="iframe"} stands for **Structured Query Language**
+- It is a domain-specific language used in programming and designed for managing data held in a relational database management system (RDBMS)
+- SQL is widely used in industry and academia
+- Its main task is to extract data from a server
+- Many concepts are similar to Python
+- SQL is actually [quite easy to learn](https://sqlbolt.com/) and very powerful
+  - It is a great skill to have in your toolbox! 🧰
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center;"}
+[![](figures/sql.jpg)](https://en.wikipedia.org/wiki/SQL){data-modal-type="iframe"}
+[![](figures/database-example.png)]{data-modal-type="iframe"}
+:::
+:::
+:::
+:::
+
+## PostgreSQL and pgAdmin 🐘
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- We will use [PostgreSQL](https://www.postgresql.org/) as our database management system
+- And [pgAdmin](https://www.pgadmin.org/) as our administration and development platform
+- Why? Because they are [free, open-source, and very powerful](https://www.prisma.io/dataguide/postgresql/benefits-of-postgresql) ([and a lot of people love it!](https://www.timescale.com/blog/postgres-for-everything/){data-modal-type="iframe"})
+- PostgreSQL is also the most popular database management system among developers (Source: [Stack Overflow Developer Survey](https://survey.stackoverflow.co/2024/technology/#1-databases){data-modal-type="iframe"})
+- pgAdmin is a open-source administration and development platform for PostgreSQL, which makes it (much) easier to manage your database
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center;"}
+[![](figures/postgresql.png)](https://www.postgresql.org/){data-modal-type="iframe"}
+[![](figures/pgadmin.png)](https://www.pgadmin.org/){data-modal-type="iframe"}
+:::
+:::
+:::
+:::
+
+## Getting started 
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Please check the [PostgreSQL tutorial](https://danilofreire.github.io/qtm151/tutorials/04-postgresql-tutorial.html){data-modal-type="iframe"} on our website
+- You can install PostgreSQL from the [official website](https://www.postgresql.org/download/)
+- If you install the [Interactive installer by EDB](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads){data-modal-type="iframe}, pgAdmin will come with it
+- During the installation, you may have to set a password for the default user, `postgres`. [Please remember it]{.alert}, as you will need it to connect to the database
+- The default port for PostgreSQL is `5432` and the host is `localhost` (no need to change them)
+- The default username is `postgres` and the default database is `postgres`
+- No need to install the Stack Builder, pgAdmin will be enough for our purposes
+- If you do (there's no harm in doing so), you don't need to run it after the installation
+- Again, please check the tutorial as it includes step-by-step instructions and screenshots
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center;"}
+[![](figures/postgresql-download.png)](https://www.postgresql.org/download)
+[![Click on the image to go to the website](figures/installer.png)](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads)
+:::
+:::
+:::
+:::
+
+## Installation
+
+:::{style="margin-top: 30px; font-size: 20px; text-align=center;"}
+:::{.columns}
+:::{.column width="50%"}
+![](figures/install01.png)
+:::
+
+:::{.column width="50%"}
+![](figures/install02.png)
+:::
+:::
+:::
+
+## Installation
+
+:::{style="margin-top: 30px; font-size: 20px; text-align=center;"}
+:::{.columns}
+:::{.column width="50%"}
+![](figures/install03.png)
+:::
+
+:::{.column width="50%"}
+![](figures/install04.png)
+:::
+:::
+:::
+
+## Installation
+
+:::{style="margin-top: 30px; font-size: 20px; text-align=center;"}
+:::{.columns}
+:::{.column width="50%"}
+![](figures/install05.png)
+:::
+
+:::{.column width="50%"}
+![](figures/install06.png)
+:::
+:::
+:::
+
+## Installation
+
+:::{style="margin-top: 30px; font-size: 20px; text-align=center;"}
+:::{.columns}
+:::{.column width="50%"}
+![](figures/install07.png)
+:::
+
+:::{.column width="50%"}
+![](figures/install08.png)
+:::
+:::
+:::
+
+## Installation
+
+:::{style="margin-top: 30px; font-size: 20px; text-align=center;"}
+:::{.columns}
+:::{.column width="50%"}
+![](figures/install09.png)
+
+- No need to launch Stack Builder after the installation
+:::
+
+:::{.column width="50%"}
+![](figures/install10.png){width="80%"}
+
+- Then you can just click on the pgAdmin icon on your desktop and you are good to go! 🚀
+- If you have any issues with this version of pgAdmin for MacOS, you can install it again directly from [the official website](https://www.postgresql.org/ftp/pgadmin/pgadmin4/v8.12/macos/)
+:::
+:::
+:::
+
+# Questions? <br> Did the installation work? 🤓 {background-color="#2d4563"}
+
+# Let's see how SQL works! 🧑🏻‍💻 {background-color="#2d4563"}
+
+## Creating a table with pgAdmin
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+- Open pgAdmin and click on `postgres` with the right mouse button, then click on `Connect Server`
+- You will be prompted to enter the password you set during the installation
+
+:::{style="text-align: center;"}
+![](figures/pgadmin01.png){width="60%"}
+:::
+:::
+
+## Creating a table with pgAdmin
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+- You will see a few icons below the `postgres` database
+- We're on the right track! 😉
+
+:::{style="text-align: center;"}
+![](figures/pgadmin02.png){width="60%"}
+:::
+:::
+
+## Creating a table with pgAdmin
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+- Now click on `Databases`, then `postgres` below it. After this, click with the right mouse button and go to `Query Tool`
+
+:::{style="text-align: center;"}
+![](figures/pgadmin03.png){width="60%"}
+:::
+:::
+
+## Creating a table with pgAdmin
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+- You will see a new tab with a SQL editor
+- This is where we will write our SQL commands for now
+- Soon we will learn how to write SQL commands in VSCode and in Python!
+
+:::{style="text-align: center;"}
+![](figures/pgadmin04.png){width="60%"}
+:::
+:::
+
+# Are you ready? 🚀 {background-color="#2d4563"}
+
+## Let's write some SQL code!
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+- We will start by creating a table from scratch
+- But first, it is good practice to [check if the table already exists and drop it if it does]{.alert}
+- This way we avoid errors and can start fresh 🤓
+- Since we've been talking about [Formula 1](https://en.wikipedia.org/wiki/Formula_One){data-modal-type="iframe"}, let's create a table with some information about drivers
+- [System commands are in upper case]{.alert} and [user-defined names are in lower case]{.alert}
+
+```{sql}
+DROP TABLE IF EXISTS drivers;
+
+CREATE TABLE drivers(
+    driver_id int,
+    driver_name varchar(30),
+    nationality varchar(15),
+    victories int
+);
+```
+:::
+
+:::{.column width="50%"}
+- What are we doing here?
+- Create empty `TABLE` called `drivers`
+- This example has [five arguments]{.alert} separated by a comma (`,`) that contain the `column_name` and `column_type`, respectively
+- The `driver_id` is an `int`, the `driver_name` is a `varchar` with a maximum of 30 characters, the `nationality` is a `varchar` with a maximum of 15 characters, and the `victories` is an `int`
+- The `driver_id` is the primary key, which means it is unique for each driver
+- Paste that into the SQL editor and click on the `Execute` (▶️) button to run the code
+
+```{sql}
+NOTICE:  table "drivers" does not exist, skipping
+CREATE TABLE
+
+Query returned successfully in 88 msec.
+```
+:::
+:::
+:::
+
+## Add rows to table
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+- Now that we have created the table, let's add some rows to it!
+- We can do this by using the `INSERT INTO` command
+- This command adds rows with `VALUES` to the bottom of the table
+- In SQL, different lines need to be separated by a semicolon (`;`)
+- As mentioned above, you write system commands in capital letters to easily distinguish column names from system commands
+- Let's add some information about the drivers
+
+```{sql}
+INSERT INTO drivers VALUES (1, 'Lewis Hamilton','British', 103);
+
+INSERT INTO drivers VALUES (4, 'Fernando Alonso', 'Spanish', 32);
+
+INSERT INTO drivers VALUES (3, 'Sebastian Vettel', 'German', 91);
+
+INSERT INTO drivers VALUES (2, 'Michael Schumacher', 'German', 53);
+```
+
+- Now click on the `Execute` (▶️) button to run the code
+:::
+
+## Add rows to table
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+:::{style="text-align: center;"}
+![](figures/add-values.png){width="68%"}
+:::
+
+- Click on the `Data Output` tab (bottom left) to see the results...  [[but there's nothing there!]{.alert} 😱]{.fragment .fade-in}
+:::
+:::
+
+## Nah, don't worry 😅
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+- The `Data Output` tab is empty because we need to run a `SELECT` command to see the data 😉
+- We will learn more about the `SELECT` command soon, but for now let's just run the following command:
+
+```{sql}
+SELECT * FROM drivers;
+```
+
+- This command selects all columns (`*`) from the `drivers` table
+- Click on the `Execute` (▶️) button to run the code (or press `F5`)
+- Now you should see the data you just added to the table! 🎉
+
+:::{style="text-align: center;"}
+![](figures/select-all.png){width="68%"}
+:::
+:::
+
+## Try it yourself! 🧠 {#sec:exercise01}
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- Add two or three more rows to the `drivers` table on your own
+- Make sure to use a unique `driver_id` for each new driver
+- Remember to separate commands with a semicolon (`;`)
+- Here's some code to help you get started:
+
+```{sql}
+INSERT INTO drivers VALUES (5, 'Max Verstappen', 'Dutch', 51); 
+
+INSERT INTO drivers VALUES (6, 'Juan Pablo Montoya', 'Colombian', 6);
+
+INSERT INTO drivers VALUES (7, 'Danilo Freire','Brazilian', 10);
+```
+
+- [[Appendix 01]{.button}](#sec:appendix01) 
+:::
+
+# Connecting to the database in VSCode {background-color="#2d4563"}
+
+## SQL Notebook extension
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+- We can also connect to the database using VSCode
+- There are many good extensions for SQL in VSCode, but we will use the [SQL Notebook](https://marketplace.visualstudio.com/items?itemName=cmoog.sqlnotebook){data-modal-type="iframe"} extension
+- Why this one? Because it not only works with PostgreSQL but also with other SQL databases
+- And it has the same look and feel as Jupyter Notebooks, which we are already familiar with 😊
+  
+:::{style="text-align: center;"}
+![](figures/vscode01.png){width="90%"}
+:::
+:::
+
+## SQL Notebook extension
+### Connecting to the database
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Keep your pgAdmin open and let's connected to the database
+- Click on the `SQL Notebook` icon on the left side of the screen
+- Then on `New SQL Connection`
+- Display name: `localhost` (or any name you want)
+- Database Driver: `postgres`
+- Database Host: `localhost`
+- Database Port: `5432`
+- Database User: `postgres`
+- Database Password: the password you set during the installation
+- Database Name: `postgres`
+- Then click on `Create`
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center; top-margin: -50px;"}
+![](figures/vscode02.png){width="90%"}
+:::
+:::
+:::
+:::
+
+## SQL Notebook extension
+### Connecting to the database
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Now we only need to two two things: 
+  - Click on the icon to establish the connection
+  - Open a `.sql` with SQL Notebook
+
+![](figures/vscode03.png){width="90%"}
+:::
+
+:::{.column width="50%"}
+- There is a `17-introduction-sql.sql` file in the repository for this lecture
+- Open with the `Open With` menu option (right button). Then, select the SQL Notebook format
+
+:::{style="text-align: center;"}
+![](figures/vscode04.png){width="90%"}
+:::
+:::
+:::
+:::
+
+## SQL Notebook extension
+
+:::{style="margin-top: 50px; font-size: 20px; text-align=center;"}
+![](figures/vscode05.png){width="90%"}
+:::
+
+## SQL Notebook extension
+
+:::{style="margin-top: 50px; font-size: 20px; text-align=center;"}
+![](figures/vscode06.png){width="90%"}
+:::
+
+# So far so good? 😉 {background-color="#2d4563"}
+
+# Dataset Operations in SQL 📊 {background-color="#2d4563"}
+
+## Extracting columns from table
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+:::{.columns}
+:::{.column width="50%"}
+### SELECT extracts certain columns
+- The `SELECT` command is used to extract certain columns from a table
+
+```{sql}
+SELECT driver_id, nationality FROM drivers;
+```
+
+![](figures/select-columns.png){width="80%"}
+:::
+
+:::{.column width="50%"}
+### Subsetting rows
+
+- The `WHERE` command evaluates logical conditions to subset rows
+
+```{sql}
+SELECT * FROM drivers
+WHERE nationality = 'German';
+```
+
+![](figures/where-german.png){width="90%"}
+:::
+:::
+:::
+
+## AND and OR conditions
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="54%"}
+### OR conditions
+- Evaluate OR conditions
+
+```{sql}
+SELECT * FROM drivers
+WHERE (nationality = 'Brazilian') OR (nationality = 'German');
+```
+
+![](figures/or-conditions.png){width="90%"}
+:::
+
+:::{.column width="46%"}
+### AND conditions
+- Evaluate AND conditions
+
+```{sql}
+SELECT * FROM drivers
+WHERE (nationality = 'German') AND (driver_id = 3);
+```
+
+![](figures/and-conditions.png){width="90%"}
+:::
+:::
+:::
+
+## Data description
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+### Aggregate
+
+- To compute aggregate statistics use a statistic function, such as `SUM()` or `AVG()`
+- The `AS` is an alias which assigns a name to the aggregate statistic
+  
+```{sql}
+SELECT SUM(victories) AS sum_victories,
+       COUNT(*) AS num_rows,
+       AVG(victories) AS mean_victories,
+       MIN(victories) AS min_victories,
+       MAX(victories) AS max_victories
+FROM drivers;
+```
+
+![](figures/aggregate.png){width="90%"}
+:::
+
+:::{.column width="50%"}
+### Sort
+
+- Use `ORDER BY` to sort the data
+- Order in ascending order of victories with `ASC` (`DESC` for descending)
+
+```{sql}
+SELECT driver_name, victories FROM drivers
+ORDER BY victories ASC;
+```
+
+![](figures/order-asc.png){width="70%"}
+:::
+:::
+:::
+
+## Try it yourself! 🧠 {#sec:exercise02}
+
+:::{style="margin-top: 30px; font-size: 26px;"}
+- Select `nationality` and `driver_id` for drivers with more than 60 victories
+- Write your own code! 🧠
+- [[Appendix 02]{.button}](#sec:appendix02)
+:::
+
+## Groupby + Aggregate
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+### Groupby
+
+- Use `GROUP BY` to group data by a column
+
+```{sql}
+SELECT nationality,
+       SUM(victories) AS sum_victories,
+       AVG(victories) AS mean_victories,
+       MIN(victories) AS min_victories,
+       MAX(victories) AS max_victories
+FROM drivers
+GROUP BY nationality;
+```
+
+![](figures/groupby.png){width="90%"}
+:::
+
+:::{.column width="50%"}
+### Round
+
+- Use `ROUND()` to round the values
+- The first argument is the value to be rounded and the second is the number of decimal places
+
+```{sql}
+SELECT nationality,
+       SUM(victories) AS sum_victories,
+       ROUND(AVG(victories), 1) AS mean_victories,
+       MIN(victories) AS min_victories,
+       MAX(victories) AS max_victories
+FROM drivers
+GROUP BY nationality;
+```
+
+![](figures/round.png){width="70%"}
+:::
+:::
+:::
+
+## Filtering after aggregating with HAVING
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Use `HAVING` to filter variables [after aggregating]{.alert}
+- This differs from `WHERE`, which is used to filter variables [before aggregating]{.alert}
+
+```{sql}
+SELECT nationality,
+       SUM(victories) AS sum_victories,
+       ROUND(AVG(victories), 1) AS mean_victories,
+       MIN(victories) AS min_victories,
+       MAX(victories) AS max_victories
+FROM drivers
+GROUP BY nationality
+HAVING SUM(victories) > 50;
+```
+:::
+
+:::{.column width="50%"}
+- The command above computes the same table as the previous one
+- Then filters with `HAVING`
+
+![](figures/having.png){width="90%"}
+:::
+:::
+:::
+
+## Python vs. SQL
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+- Here are some equivalences between Python and SQL commands
+
+| SQL Command        | Pandas Equivalent                                                                                      |
+|--------------------|--------------------------------------------------------------------------------------------------------|
+| `SELECT`           | `df[['column1', 'column2']]`                                                                           |
+| `INSERT INTO`      | `df.loc[new_index] = new_row` or `df = df.append(new_row, ignore_index=True)`                           |
+| `WHERE`            | `df[df['column'] == value]`                                                                            |
+| `GROUP BY`         | `df.groupby('column')`                                                                                 |
+| `HAVING`           | `df.groupby('column').filter(lambda x: condition)`                                                     |
+| `ROUND()`          | `df['column'].round(decimals)`                                                                         |
+| Aggregate Functions | `df.groupby('column').agg({'col1': 'sum', 'col2': 'mean', 'col3': 'min', 'col4': 'max'})`             |
+
+<br>
+
+:::{style="font-size: 20px;"}
+:::{.columns}
+:::{.column width="40%"}
+```{sql}
+-- SQL
+SELECT nationality,
+       SUM(victories) AS sum_victories
+FROM drivers
+GROUP BY nationality
+HAVING SUM(victories) > 10;
+```
+:::
+
+:::{.column width="60%"}
+```{python}
+#| echo: true
+#| eval: false
+# Python
+import pandas as pd
+
+# Group by 'nationality' and calculate 'sum_victories' using agg()
+result = (
+    drivers.groupby('nationality')
+    .agg(sum_victories=('victories', 'sum'))
+    .reset_index()
+)
+
+# Apply 'HAVING' condition
+result = result[result['sum_victories'] > 10]
+```
+:::
+:::
+:::
+:::
+
+## Do you want to learn more? 🤓 
+
+:::{style="margin-top: 50px; font-size: 22px;"}
+- Here is a list of resources to help you learn more about SQL:
+  - [SQLBolt](https://sqlbolt.com/): Interactive SQL tutorials
+  - [W3Schools](https://www.w3schools.com/sql/): SQL tutorials
+  - [Kaggle](https://www.kaggle.com/learn/intro-to-sql): SQL course
+  - [Mode Analytics](https://mode.com/sql-tutorial/): SQL tutorial
+  - [SQLZoo](https://sqlzoo.net/){data-modal-type="iframe"}: Interactive SQL tutorials
+  - [PostgreSQL Tutorial](https://www.postgresqltutorial.com/)
+  - [SQL for Data Science](https://www.datacamp.com/courses/sql-for-data-science): DataCamp course
+  - [SQL for Data Science](https://www.coursera.org/learn/sql-for-data-science): Coursera course
+  - [List of all PostgreSQL commands](https://www.postgresql.org/docs/current/sql-commands.html): There are many of them! 😅
+
+- Or just come to our next class! 😊
+:::
+
+# And that's it for today! 🚀 {background-color="#2d4563"}
+
+# See you next time! 😊 {background-color="#2d4563"}
+
+## Appendix 01 {#sec:appendix01}
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+```{sql}
+INSERT INTO drivers VALUES (5, 'Max Verstappen', 'Dutch', 51);
+
+INSERT INTO drivers VALUES (6, 'Juan Pablo Montoya', 'Colombian', 6);
+
+INSERT INTO drivers VALUES (7, 'Danilo Freire','Brazilian', 10);
+```
+
+![](figures/appendix01.png){width="40%"}
+
+[[Back to the exercise]{.button}](#sec:exercise01)
+:::
+
+## Appendix 02 {#sec:appendix02}
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+```{sql}
+SELECT nationality, driver_id FROM drivers
+WHERE victories > 60;
+```
+
+![](figures/appendix02.png){width="68%"}
+
+[[Back to the exercise]{.button}](#sec:exercise02)
+:::
