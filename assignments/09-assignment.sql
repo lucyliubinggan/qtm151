@@ -3,7 +3,7 @@
 -- Name:
 -- Emory Id:
 
--- Using pdAdmin or any other SQL client, create a new database called "assignment_09" and run the following SQL script.
+-- Using pdAdmin or any other SQL client, run the following SQL script to create a new table.
 -- Then answer the questions in the assignment.
 
 DROP TABLE IF EXISTS "drivers";
