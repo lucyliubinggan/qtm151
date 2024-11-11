@@ -1,0 +1,563 @@
+---
+title: QTM 151 - Introduction to Statistical Computing II
+subtitle: Lecture 20 - Joining Tables in SQL
+date: 2024-10-11
+date-format: "DD MMMM, YYYY"
+author:
+  - name: Danilo Freire
+    email: danilo.freire@emory.edu
+    affiliations: Emory University
+format:
+  clean-revealjs:
+    self-contained: true
+    code-overflow: wrap
+    footer: "[Joining Tables](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-20/20-sql-merging.html)"
+transition: slide
+transition-speed: default
+scrollable: true
+engine: jupyter
+revealjs-plugins:
+  - fontawesome
+  - multimodal
+editor:
+  render-on-save: true
+---
+
+# Hi! 😊 Hope your week is going well {background-color="#2d4563"}
+
+# Brief recap of lecture 19 📚 {background-color="#2d4563"}
+
+## Some updates on the final project
+
+:::{style="margin-top: 60px; font-size: 24px;"}
+- The list of groups is now available on our reppository. [Check it out here](https://github.com/danilofreire/qtm151/blob/main/final-project/groups.ipynb)
+- All groups have 3-4 members, as we discussed
+- Many thanks to all of you who have already formed your groups and sent them to me! 🙏🏻
+- Those not in a group have been assigned to one at random
+- So please check the list and make sure you are in a group, and that you know your group members
+- Any questions? 😊
+:::
+
+## Brief recap of last lecture
+### Last time, we learned how to:
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+:::{.columns}
+:::{.column width=50%}
+- Use `psycopg2` to connect to a PostgreSQL database
+- Use `sqlalchemy` and `pandas` to run SQL queries in Python
+- Use `pandas` to convert files to SQL tables and vice-versa
+- And we also learned how to use Python functions with SQL queries
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center; margin-top: -40px;"}
+![](figures/programmerhumor-io-databases-memes-backend-memes-0f294b9b8612853.webp){width="70%"}
+:::
+:::
+:::
+:::
+
+# Today's plan 📋 {background-color="#2d4563"}
+
+## Merge tables in SQL
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- We will learn how to merge tables in SQL
+- We will use `JOIN` statements to merge tables
+- There are many types of joins, and we will learn the most common ones
+  - `INNER JOIN` and `LEFT JOIN`
+- The syntax is similar to `pandas`' `merge` method
+- We will also learn how to merge tables using `USING` and `ON` clauses
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center;"}
+![](figures/joins.png)
+:::
+:::
+:::
+:::
+
+# Merging tables in SQL 📊 {background-color="#2d4563"}
+
+## The `JOIN` statement
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- The `JOIN` statement is used to combine rows from two or more tables, based on a related column between them (usually a primary key)
+- `JOIN` is very flexible and can be used in many ways for pretty much all types of data merge operations
+- The most common types of joins are:
+  - `INNER JOIN`
+  - `LEFT JOIN`
+  - `RIGHT JOIN`
+  - `FULL JOIN`
+  - `CROSS JOIN`
+  - `SELF JOIN`
+- `LEFT JOIN` is probably the most common type of join
+- You [keep all rows from the left table and only the matching rows from the right table]{.alert}
+:::
+
+:::{.column width=50%}
+- The syntax is as follows:
+- `SELECT * FROM table1 LEFT JOIN table2 ON table1.column = table2.column`
+- The `ON` clause specifies the condition to join the tables, i.e., the column(s) that are common to both tables
+- The `LEFT JOIN` keyword returns all records from the left table (table1), and the matched records from the right table (table2)
+- The result is `NULL` from the right side if there is no match
+- Let's see an example to make it clearer 😊
+:::
+:::
+:::
+
+## Set up the environment 🛠️ {#sec:environment}
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- Let's start by loading the necessary libraries
+```{python}
+#| echo: true
+#| eval: true
+# Load the necessary libraries
+import pandas as pd
+import psycopg2
+from sqlalchemy import create_engine, text
+
+# Connect to the database
+engine = create_engine('postgresql+psycopg2://postgres:postgres@localhost:5432/postgres')
+conn = engine.connect()
+```
+
+- Then let's create two tables that we will use to test the `JOIN` clauses
+- Issues with the code? [Please have a look at the appendix](#sec:appendix01)
+
+```{python}
+#| echo: true
+#| eval: true
+# Rollback any existing transactions
+conn.rollback()
+
+# Drop the tables if they already exist
+conn.execute(text('DROP TABLE IF EXISTS famous_people CASCADE'))
+
+conn.execute(text('DROP TABLE IF EXISTS information CASCADE'))
+
+# Create tables in the SQL database
+conn.execute(text('''
+CREATE TABLE IF NOT EXISTS famous_people (
+    person_id INTEGER PRIMARY KEY,
+    name TEXT
+)
+'''))
+
+conn.execute(text('''
+CREATE TABLE IF NOT EXISTS information (
+    person_id INTEGER,
+    country TEXT,
+    profession TEXT
+)
+'''))
+
+# Insert data into the tables
+conn.execute(text('''
+INSERT INTO famous_people (person_id, name) VALUES 
+  (1, 'Albert Einstein'),
+  (2, 'Isaac Newton'),
+  (3, 'Marie Curie'),
+  (4, 'Galileo Galilei'),
+  (5, 'René Descartes'),
+  (6, 'Blaise Pascal'),
+  (7, 'Nikola Tesla')
+'''))
+
+conn.execute(text('''
+INSERT INTO information (person_id, country, profession) VALUES 
+  (1, 'Germany', 'Physicist'),
+  (2, 'United Kingdom', 'Mathematician'),
+  (3, 'Poland', 'Physicist'),
+  (4, 'Italy', 'Astronomer'),
+  (5, 'France', 'Philosopher'),
+  (6, 'France', 'Mathematician')
+'''))
+
+conn.commit()
+conn.close()
+```
+:::
+
+## Let's see the tables 
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- Let's see the tables we just created
+
+```{python}
+#| echo: true
+#| eval: true
+# Connect to the database
+conn = engine.connect()
+pd.read_sql_query("SELECT * FROM famous_people", conn)
+```
+
+```{python}
+#| echo: true
+#| eval: true
+pd.read_sql_query("SELECT * FROM information", conn)
+```
+:::
+
+## Error handling 🚨 {#sec:error}
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- `sqlalchemy` sometimes produces some unexpected behaviours when running SQL queries
+- In my experience, it sometimes fails to run queries that are too long or too complex
+- The worst thing is, [it just keeps running forever without giving any error message!]{.alert} 🤬
+- So if you run a query and it takes too long, or if you suspect it is not working, just interrupt the kernel and try again
+- A good idea is to add `conn.rollback()` before running the query, to make sure the connection is clean
+- If you would like to save the data, it is also a good idea to run `conn.commit()` to make sure the data is saved
+- Then, close the connection to prevent memory leaks with `conn.close()`
+:::
+
+:::{.column width=50%}
+- The bad news is that you have to recreate the connection every time you encounter an error
+- If you typed `conn.commit()`, the table will indeed be in the database, so you won't need to recreate it
+- But if you didn't, you will need to recreate the table and insert the data again
+- So far I haven't found a way to fix this error (it seems to happen quite often with others too), but I will keep looking for a solution 😊
+- Check [this appendix](#sec:appendix01) for a workaround
+:::
+:::
+:::
+
+## Let's join the tables with `LEFT JOIN` 🤝
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- Now that we have the tables, let's join them using the `LEFT JOIN` clause
+
+```{python}
+#| echo: true
+#| eval: true
+pd.read_sql("""
+    SELECT * 
+    FROM famous_people 
+    LEFT JOIN information
+    ON famous_people.person_id = information.person_id
+""", conn)
+```
+:::
+
+## Let's join the tables with `INNER JOIN` 🤝
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- Now let's join the tables using the `INNER JOIN` clause
+
+```{python}
+#| echo: true
+#| eval: true
+pd.read_sql("""
+SELECT * 
+FROM famous_people 
+INNER JOIN information 
+ON famous_people.person_id = information.person_id
+""", conn)
+```
+:::
+
+# Entity Relationship Diagram (ERD) 📊 {background-color="#2d4563"}
+
+## What is an ERD?
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- An Entity Relationship Diagram (ERD) is a visual representation of the relationships between entities in a database
+- ERDs are used to model the logical structure of a database
+- Their main function is to indicate which entities (variables) are related to each other and how they are related
+- So they should always indicate the primary keys and foreign keys of the tables
+- A primary key is a unique identifier for each row in a table
+- A foreign key is a column that references the primary key of another table
+- Tables don't need to have a foreign key, but they usually do as it helps to maintain data integrity
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center;"}
+[![Click to enlarge](figures/rdb_us_congress.png)]{data-modal-type="image"}
+Click on the image to enlarge
+:::
+
+- For instance, if we have a table with information about members of the US Congress, we could have the following ERD
+- Note the connections between the tables, which indicate the relationships between them
+:::
+:::
+:::
+
+## Let's see another example with bigger tables 📊
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- This time, we will load two `.csv` files into the database
+- We will then join the tables using the `LEFT JOIN` clause
+
+```{python}
+#| echo: true
+#| eval: true
+# Load the data
+bills_actions       = pd.read_csv("data_raw/bills_actions.csv")
+us_congress_members = pd.read_csv("data_raw/us_congress_members.csv")
+
+# Recreate the connection
+conn = engine.connect()
+
+# Rollback any existing transactions
+conn.rollback()
+
+# Drop the tables if they already exist
+conn.execute(text('DROP TABLE IF EXISTS bills_actions CASCADE'))
+conn.execute(text('DROP TABLE IF EXISTS us_congress_members CASCADE'))
+conn.commit()
+
+# Create the tables in the database
+bills_actions.to_sql("bills_actions", conn, if_exists="replace", index=False)
+us_congress_members.to_sql("us_congress_members", conn, if_exists="replace", index=False)
+conn.commit()
+```
+:::
+
+## Let's see the table 📊
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+```{python}
+#| echo: true
+#| eval: true
+# Recreate the connection
+conn = engine.connect()
+
+# Rollback any existing transactions
+conn.rollback()
+
+# Check if the table exists
+pd.read_sql(text('SELECT * FROM bills_actions'), conn).head()
+```
+:::
+
+## Try it yourself! 🤓 {#sec:exercise01}
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- Download and display the `us_congress_members` dataset from SQL
+- Be sure to use `conn.rollback()` before running the query to clean the connection
+- If you encounter an error, check the [appendix](#sec:appendix01) or ask me for help 😊
+- [[Click here to see the solution]{.button}](#sec:appendix02)
+:::
+
+## Merging the tables 🤝
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+:::{style="text-align: center;"}
+[![Click to enlarge](figures/rdb_us_congress.png)]{data-modal-type="image"}
+Click on the image to enlarge
+:::
+:::
+
+:::{.column width=50%}
+- Here `member_id` is the `PRIMARY KEY` of the first dataset
+- We can check that with SQL commands
+
+```{python}
+#| echo: true
+#| eval: true
+# Recreate the connection
+engine = create_engine('postgresql://postgres:postgres@localhost:5432/postgres')
+conn = engine.connect()
+
+# Rollback any existing transactions
+conn.rollback()
+
+# Check if the table exists and count distinct member_id
+results = pd.read_sql(text('''
+  SELECT COUNT(DISTINCT member_id) AS num_distinct,
+  COUNT(*) AS num_members 
+  FROM us_congress_members
+'''), conn)
+
+print(results)
+
+conn.close()
+```
+:::
+:::
+:::
+
+## Try it yourself! 🤓 {#sec:exercise02}
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+- Merge two datasets
+- Similar to Python
+- `FROM` is followed by the name of the primary dataset
+- `LEFT` is followed by the name of the secondary dataset
+- `ON` is the id variable used for merging
+- [[Click here to see the solution]{.button}](#sec:appendix03)
+:::
+
+## Appendix 01 - Error handling 🚨 {#sec:appendix01}
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- If you encounter an error when running the code, you can use the following workaround
+- First, you can rollback the transaction to clean the connection
+- Add this before running the query
+
+```{python}
+#| echo: true
+#| eval: false
+conn.rollback()
+```
+
+- If you want to save the data, you can commit the transaction
+- Add this after running the query
+
+```{python}
+#| echo: true
+#| eval: false
+conn.commit()
+```
+
+- Finally, close the connection to prevent memory leaks
+
+```{python}
+#| echo: true
+#| eval: false
+conn.close()
+```
+:::
+
+## Appendix 01 - Error handling 🚨 
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- If everything else fails, you can drop all tables and recreate them
+- This code will clean your database
+
+```{python}
+#| echo: true
+#| eval: false
+from sqlalchemy import create_engine, text, inspect
+import time
+
+engine = create_engine('postgresql+psycopg2://postgres:postgres@localhost:5432/postgres', future=True)
+connection = engine.connect()
+
+def clean_database(engine):
+    with engine.connect() as conn:
+        try:
+            # Get inspector to check existing tables
+            inspector = inspect(engine)
+            existing_tables = inspector.get_table_names()
+            
+            if not existing_tables:
+                print("No tables found in database")
+                return
+                
+            print(f"Found {len(existing_tables)} tables: {existing_tables}")
+            
+            # Kill other connections
+            conn.execute(text("""
+                SELECT pg_terminate_backend(pid) 
+                FROM pg_stat_activity 
+                WHERE pid <> pg_backend_pid()
+                AND datname = current_database()
+            """))
+            
+            conn.execute(text("ROLLBACK"))
+            conn.execute(text("SET statement_timeout = '30s'"))
+            
+            # Only drop tables that exist
+            for table in existing_tables:
+                try:
+                    conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
+                    print(f"Dropped {table}")
+                    conn.commit()
+                    time.sleep(1)
+                except Exception as e:
+                    print(f"Error with {table}: {str(e)}")
+                    conn.execute(text("ROLLBACK"))
+                    
+        except Exception as e:
+            print(f"Fatal error: {str(e)}")
+            conn.execute(text("ROLLBACK"))
+
+# Execute
+clean_database(engine)
+```
+
+[[Back to the lecture]{.button}](#sec:error)
+:::
+
+## Appendix 02 {#sec:appendix02}
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- Download and display the `us_congress_members` dataset from SQL
+
+```{python}
+#| echo: true
+#| eval: true
+# Recreate the connection
+conn = engine.connect()
+
+# Rollback any existing transactions
+conn.rollback()
+
+# Drop the tables if they already exist
+conn.execute(text('''
+DROP TABLE IF EXISTS us_congress_members CASCADE
+'''))
+conn.commit()
+
+# Import "races"
+us_congress_members.to_sql('us_congress_members', 
+             con = conn, 
+             if_exists='replace',
+             index=False)
+
+conn.commit()
+
+# Check if the table exists
+pd.read_sql_query("SELECT * FROM us_congress_members", conn)
+```
+
+[[Back to the lecture]{.button}](#sec:exercise01)
+:::
+
+## Appendix 03 {#sec:appendix03}
+
+:::{style="margin-top: 30px; font-size: 22px;"}
+- Merge two datasets
+- Similar to Python
+- `FROM` is followed by the name of the primary dataset
+- `LEFT` is followed by the name of the secondary dataset
+- `ON` is the id variable used for merging
+- Here we are merging the `us_congress_members` dataset with the `bills_actions` dataset
+
+```{python}
+#| echo: true
+#| eval: true
+# Restart the connection
+conn = engine.connect()
+
+# Rollback any existing transactions
+conn.rollback()
+
+# Merge the tables
+results = pd.read_sql('''
+SELECT *
+FROM us_congress_members
+LEFT JOIN bills_actions
+ON us_congress_members.member_id = bills_actions.member_id
+''', conn)
+
+print(results.head())
+
+conn.close()
+```
+
+[[Back to the lecture]{.button}](#sec:exercise02)
+:::

@@ -1,0 +1,335 @@
+---
+title: QTM 151 - Introduction to Statistical Computing II
+subtitle: Lecture 19 - SQL and Python
+date: 2024-10-06
+date-format: "DD MMMM, YYYY"
+author:
+  - name: Danilo Freire
+    email: danilo.freire@emory.edu
+    affiliations: Emory University
+format:
+  clean-revealjs:
+    self-contained: true
+    code-overflow: wrap
+    footer: "[SQL and Python](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-19/19-sql-python.html)"
+transition: slide
+transition-speed: default
+scrollable: true
+engine: jupyter
+revealjs-plugins:
+  - fontawesome
+  - multimodal
+editor:
+  render-on-save: true
+---
+
+# Hello, everyone! 😊 <br> How are you doing today? {background-color="#2d4563"}
+
+## An announcement 📢
+
+:::{style="margin-top: 50px; font-size: 22px; text-align: center;"}
+![](figures/alumni.png){width="50%"}
+:::
+
+## Another announcement 📢
+### Final project
+
+:::{style="margin-top: 50px; font-size: 24px;"}
+- The project is due on **December 9th**, as we talked about before
+- [Feel free to create your own groups]{.alert} of up to 4 people and [send them to me via email]{.alert}
+- I will also send an announcement on Canvas about that 
+- Students who are not in a group by the end of this week will be assigned to a group at random 
+- So please, make sure you have a group soon 🤓
+- What do you think? Any questions? 😊
+:::
+
+# Brief recap of lecture 17 📚 {background-color="#2d4563"} 
+
+## Do you still remember what SQL is? 😂
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width=50%}
+- SQL is a language used to interact with databases
+- We learned how to connect to a [PostgreSQL](https://www.postgresql.org/) database, use [pgAdmin](https://www.pgadmin.org/), and run SQL queries both with pgAdmin and the [SQL Notebook extension](https://marketplace.visualstudio.com/items?itemName=cmoog.sqlnotebook) in VS Code
+- We also saw some of SQL's basic commands:
+  - `SELECT`
+  - `FROM`
+  - `WHERE`
+  - `ORDER BY`
+  - `GROUP BY`
+  - `INSERT INTO`
+  - `CREATE TABLE`
+  - `DROP TABLE`
+- And today we will see how to use SQL with Python! 🐍 
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center;"}
+![](figures/ai.png){width="60%"}
+:::
+:::
+:::
+:::
+
+# SQL in Python 🐍 {background-color="#2d4563"}
+
+## Necessary libraries 📦
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width=50%}
+- `psycopg2` is a PostgreSQL adapter for Python. Info [here](https://www.psycopg.org/docs/)
+  - It allows us to connect to a PostgreSQL database and run SQL queries
+- `sqlalchemy` is a SQL toolkit. More info [here](https://www.sqlalchemy.org/)
+  - It provides a set of high-level APIs to interact with databases
+- They are a bit cumbersome to install and run, but they are very powerful tools
+- You won't need to use `pgAdmin` or `SQL Notebook` anymore, as you can run SQL queries directly in Python
+- SQL is a great language to interact with databases, but it does not have any support for data visualisation or analysis 
+- But we can use Python to do all the other things that SQL cannot do 🐍
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center;"}
+![](figures/sql-python02.jpg){width="60%"}
+:::
+:::
+:::
+:::
+
+## Installing `psycopg2` and `sqlalchemy` 🐘
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+- You can install `psycopg2` and `sqlalchemy` using `condas` or `pip`
+
+```{verbatim}
+conda install psycopg2 sqlalchemy
+
+# or
+
+pip install psycopg2 sqlalchemy
+```
+- The command line method is actually more reliable (and easier) than using the [Anaconda Navigator](https://docs.anaconda.com/navigator/)
+- So you can try to do it yourself! Open a terminal in VS Code and run the command above 🤓
+
+:::{style="text-align: center;"}
+[![](figures/sqlalchemy.jpg){width="30%"}](https://www.sqlalchemy.org/){data-modal-type="iframe"}
+:::
+:::
+
+## Connecting to a PostgreSQL database
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+- So let's load the libraries! 🤓
+
+```{python}
+#| echo: true
+#| eval: true
+import psycopg2
+from sqlalchemy import create_engine, text
+```
+
+- Now let's connect to the database
+- We need the database name, user, password, and host
+
+```{python}
+#| echo: true
+#| eval: true
+# Connection parameters
+engine = create_engine('postgresql+psycopg2://postgres:postgres@localhost:5432/postgres')
+connection = engine.connect()
+```
+
+- Let's see what every part of the connection string means
+- `create_engine()` creates a connection to the database
+- `postgresql+psycopg2` is the database driver
+- `postgres:postgres` is the username and password
+- `localhost:5432` is the host and port
+- `postgres` is the database name
+:::
+
+## Load data and import them into a table
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+- Let's load some data into a table
+
+```{python}
+#| echo: true
+#| eval: true
+import pandas as pd
+
+results  = pd.read_csv("data_raw/results.csv")
+races    = pd.read_csv("data_raw/races.csv")
+circuits = pd.read_csv("data_raw/circuits.csv")
+```
+
+- We will use the `to_sql()` method from `pandas` to import the data into PostgreSQL
+- We need to specify the table name and the connection
+
+```{python}
+#| echo: true
+#| eval: true
+results.to_sql('results', connection, if_exists='replace', index=False)
+races.to_sql('results', connection, if_exists='replace', index=False)
+```
+
+- The `if_exists='replace'` parameter will replace the table if it already exists
+  - Like `DROP TABLE` and `CREATE TABLE` in SQL
+- The `index=False` parameter will not import the index column
+:::
+
+## Try it yourself! 🤓 {#sec:exercise01}
+
+:::{style="margin-top: 50px; font-size: 28px;"}
+- Import the `circuits` table into PostgreSQL
+- [[Appendix 01]{.button}](#sec:appendix01)
+:::
+
+## Escape the SQL queries
+
+:::{style="margin-top: 50px; font-size: 18px;"}
+- When we work with strings (text), we need to ensure that the SQL query is correctly formatted
+- SQL can get confused with single and double quotes (I get confused too 😂)
+- Use a backslash (`\`) to define strins over multiple lines
+- Do not include a space after `\`, otherwise it won't work
+
+```{python}
+#| echo: true
+#| eval: true
+example_string = "This is a string \
+                  defined over multiple lines"
+
+print(example_string)
+```
+
+- Double quotes inside a string
+
+```{python}
+#| echo: true
+#| eval: true
+example_double = "This will \"supposedly\" put double quotes inside a string"
+print(example_double)
+```
+
+- Triple quotes
+
+```{python}
+#| echo: true
+#| eval: true
+example_triple = '''This is a string with 'single' and "double" quotes'''
+print(example_triple)
+```
+:::
+
+## Try it yourself! 🤓 {#sec:exercise02}
+
+:::{style="margin-top: 50px; font-size: 28px;"}
+- Print a string ``` SELECT "driverId" FROM results; ``` using backslash
+- [[Appendix 02]{.button}](#sec:appendix02)
+:::
+
+# Data operations 📊 {background-color="#2d4563"}
+
+## Selecting data
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+:::{.columns}
+:::{.column width=50%}
+- We can use the `pd.read_sql_query()` method to run SQL queries
+- A [query is a string that contains the SQL command]{.alert}
+- We can use the `text()` method from `sqlalchemy` to format the query
+- Why do we use it? Because it is [safer and more reliable]{.alert}
+- So if you're going to run a query, you're always safe using `text()`
+
+```{python}
+#| echo: true
+#| eval: true
+pd.read_sql(text("SELECT * FROM results;"), connection).head(3)
+```
+:::
+
+:::{.column width=50%}
+- Here are other examples of similar queries:
+
+```{python}
+#| echo: true
+#| eval: false
+# Extract all data from a column
+example1 = pd.read_sql(text("SELECT * FROM results;"), connection)
+
+# Extract a subset of columns
+example2 = pd.read_sql(text("SELECT points \
+                             FROM results;"), connection)
+
+# Subset based on a string condition
+example3 = pd.read_sql(text("SELECT * \
+                             FROM races \
+                             WHERE name = 'Abu Dhabi Grand Prix';"), connection)
+```
+:::
+:::
+:::
+
+## Try it yourself! 🤓 {#sec:exercise03}
+
+:::{style="margin-top: 50px; font-size: 28px;"}
+- Select `raceId` and `constructorId` from results
+- Please convert the `results.csv` file to a table in PostgreSQL again, replacing the table if it already exists
+- [[Appendix 03]{.button}](#sec:appendix03)
+:::
+
+## Appendix 01 {#sec:appendix01}
+
+:::{style="margin-top: 50px; font-size: 20px;"}
+- Import the `circuits` table into PostgreSQL
+
+```{python}
+#| echo: true
+#| eval: true
+circuits.to_sql('circuits', connection, if_exists='replace', index=False)
+```
+
+- Check if the table was imported correctly
+
+```{python}
+#| echo: true
+#| eval: true
+pd.read_sql(text('''
+SELECT * FROM circuits
+LIMIT 3 -- Show only the first 3 rows
+'''), connection)
+```
+
+[[Back to exercise]{.button}](#sec:exercise01)
+:::
+
+## Appendix 02 {#sec:appendix02}
+
+:::{style="margin-top: 50px; font-size: 24px;"}
+- Print a string ``` SELECT "driverId" FROM results; ``` using backslash
+
+```{python}
+#| echo: true
+#| eval: true
+example_query = "SELECT \"driverId\" FROM results;"
+print(example_query)
+```
+
+[[Back to exercise]{.button}](#sec:exercise02)
+:::
+
+## Appendix 03 {#sec:appendix03}
+
+:::{style="margin-top: 50px; font-size: 24px;"}
+- Select "raceId" and "constructorId" from results
+- Use the `pd.read_sql_query()` method to run the query
+
+```{python}
+#| echo: true
+#| eval: true
+results.to_sql('results', connection, if_exists='replace', index=False)
+pd.read_sql(text("SELECT \"raceId\", \"constructorId\" FROM results;"), connection).head()
+```
+
+[[Back to exercise]{.button}](#sec:exercise03)
+:::
