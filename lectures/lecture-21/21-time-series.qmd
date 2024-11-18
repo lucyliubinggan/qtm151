@@ -1,0 +1,639 @@
+---
+title: QTM 151 - Introduction to Statistical Computing II
+subtitle: Lecture 21 - Time Series
+date: 2024-11-13
+date-format: "DD MMMM, YYYY"
+author:
+  - name: Danilo Freire
+    email: danilo.freire@emory.edu
+    affiliations: Emory University
+format:
+  clean-revealjs:
+    self-contained: true
+    code-overflow: wrap
+    footer: "[Time Series](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-21/20-time-series.html)"
+transition: slide
+transition-speed: default
+scrollable: true
+engine: jupyter
+revealjs-plugins:
+  - fontawesome
+  - multimodal
+editor:
+  render-on-save: true
+---
+
+# Hello, friends! 😊 <br> Having a good day? {background-color="#2d4563"} 
+
+# Brief recap 📝 {background-color="#2d4563"} 
+
+## Last class we saw...
+
+:::{style="margin-top: 60px; font-size: 24px;"}
+:::{.columns}
+:::{.column width=50%}
+- How to use the `JOIN` statement to combine data from different tables
+- Different types of `JOIN` statements, such as `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN`, and `FULL JOIN`
+- What Entity-Relationship Diagrams are and how to use them to understand the relationships between tables
+- How to use `pd.to_sql()` to write data to a SQL database from a DataFrame
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center; margin-top: -30px;"}
+![](figures/pandas.jpg)
+:::
+:::
+:::
+:::
+
+# Today's plan 📅 {background-color="#2d4563"} 
+
+## Time Series
+
+:::{style="margin-top: 60px; font-size: 24px;"}
+:::{.columns}
+:::{.column width=50%}
+- Today we will learn about time series data
+- We will see how to work with time series data in Python
+- We will learn how to use the `datetime` module to work with dates and times
+- We will also visualise time series data using `matplotlib`
+- Finally, we will learn how to convert time series to strings and calculate aggregates
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center; margin-top: -50px;"}
+![](figures/dow.webp)
+:::
+:::
+:::
+:::
+
+# Time Series 🕰️ {background-color="#2d4563"}
+
+## What is time series data?
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- Time series data is a [sequence of data points collected at constant time intervals]{.alert}
+- These data are used in many fields, such as economics, finance, and meteorology
+- They are used to predict future values based on past observations
+- We usually decompose time series data into [trend, seasonality, and noise]{.alert}
+ - Trend: long-term increase or decrease in the data
+ - Seasonality: repeating patterns in the data
+ - Noise: random fluctuations in the data
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center; margin-top: -50px;"}
+![](figures/time.png)
+:::
+:::
+:::
+:::
+
+# Time Series in Python 🐍 {background-color="#2d4563"}
+
+## Working with time series data in Python
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=45%}
+- In Python, we can use the `datetime` module to work with dates and times
+- It provides some useful functions to manipulate time series data, and it works well with `pandas` and `matplotlib`
+- Let's load the packages we need
+
+```{python}
+#| echo: true
+#| eval: true
+# "pandas" processes datasets
+# "maplotlib.pyplot" generates graphs
+# "maplotlib.dates" has options for plotting dates
+# "datetime" handles date information
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from datetime import date, time, datetime
+```
+
+:::
+
+:::{.column width=55%}
+- Now let's import the data we will use
+
+```{python}
+#| echo: true
+#| eval: true
+# Load the data
+financial = pd.read_csv("data_raw/financial.csv")
+financial.head()
+```
+
+- `sp500` is the [S&P 500 index](https://en.wikipedia.org/wiki/S%26P_500)
+- `djia` is the [Dow Jones Industrial Average](https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average)
+:::
+:::
+:::
+
+## Parsing dates in Python
+
+:::{style="margin-top: 30px; font-size: 19px;"}
+- Date columns are strings by default
+- We can convert them to `datetime` objects using the `pd.to_datetime()` function
+- This function can handle different date formats
+- If the conversion is simple, we can use the `parse_dates` argument in `pd.read_csv()`
+  - `financial = pd.read_csv("data_raw/financial.csv",parse_dates = ["date"])`
+
+- Let's parse the first column, `date_str`, to a `datetime` object
+  
+```{python}
+#| echo: true
+#| eval: true
+# Convert the date column to datetime
+financial["date"] = pd.to_datetime(financial["date_str"])
+financial.head()
+```
+
+- We can check the types of the columns using `financial.dtypes`
+
+```{python}
+#| eval: true
+#| echo: true
+financial.dtypes
+```
+:::
+
+# Visualise time series data 📊 {background-color="#2d4563"}
+
+## Plotting time series data
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- First, let's see where our data begins and ends
+- You can do it in many ways
+
+```{python}
+#| eval: true
+#| echo: true
+financial['date'][0]
+```
+
+```{python}
+#| eval: true
+#| echo: true
+financial['date'][len(financial) - 1] # why -1 here?
+```
+
+- Or you can use the `min()` and `max()` functions
+
+```{python}
+#| eval: true
+#| echo: true
+print("Start date:", financial["date"].min())
+```
+
+```{python}
+#| eval: true
+#| echo: true
+print("End date:", financial["date"].max())
+```
+
+- Or just use `head()` and `tail()` as we did before
+:::
+
+:::{.column width=50%}
+- We can now plot the data
+- As you may remember, `plt.plot()` is used to create line plots
+- The first two arguments are column names for the `(x,y)` data
+- The third argument is the data
+- [Make sure that the data is sorted]{.alert}, since the lines will be connected based on the order of the dataset
+- We can sort the data using `financial.sort_values("date")`
+- Let's plot the data 🤓
+:::
+:::
+:::
+
+## Plotting time series data
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+```{python}
+#| eval: true
+#| echo: true
+# Sort the data
+financial = financial.sort_values("date")
+
+# Plot the data
+plt.plot("date", "sp500", data = financial)
+plt.xlabel("Time")
+plt.ylabel("S&P 500 Index")
+plt.title("The evolution of the stock market")
+plt.show()
+```
+:::
+
+## Try it yourself! 🧠 {#sec:exercise01}
+
+:::{style="margin-top: 60px; font-size: 24px;"}
+- Now it's your turn! 🚀
+- Plot the `djia` column on the `y` axis and the `date` column on the `x` axis
+- Make sure to sort the data first
+- [[Appendix 01]{.button}](#sec:appendix01)
+:::
+
+## S&P 500 vs. Dow Jones Industrial Average
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+- As you may have guessed, although the indices are calculated in different ways, they are highly correlated
+- The S&P 500 is a broader index, while the Dow Jones is more focused on industrial companies
+- The S&P 500 is considered a better representation of the overall stock market
+- Let's see how the two indices compare
+
+```{python}
+#| eval: true
+#| echo: true
+# Correlation between the two indices
+financial[["sp500", "djia"]].corr()
+```
+
+- Let's plot the two indices together
+
+```{python}
+#| eval: true
+#| echo: true
+plt.plot("date", "sp500", data = financial, label = "S&P 500")
+plt.plot("date", "djia", data = financial, label = "Dow Jones Industrial Average")
+plt.xlabel("Time")
+plt.ylabel("Index")
+plt.title("S&P 500 vs. Dow Jones Industrial Average")
+plt.legend()
+plt.show()
+```
+:::
+
+## Oops, that looks a bit messy 🤔
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+- The indices are calculated differently, so the values are not directly comparable
+- We can [normalise the indices](https://en.wikipedia.org/wiki/Normalization_(statistics)) to start from the same point
+- We do so by dividing each index by its initial value (why?)
+
+```{python}
+#| eval: true
+#| echo: true
+# Normalise the indices to start from the same point
+financial["sp500_normalised"] = financial["sp500"] / financial["sp500"].iloc[0]
+financial["djia_normalised"] = financial["djia"] / financial["djia"].iloc[0]
+
+# Plot the normalized data
+plt.plot("date", "sp500_normalised", data = financial, label = "S&P 500 (Normalised)")
+plt.plot("date", "djia_normalised", data = financial, label = "Dow Jones Industrial Average (Normalised)")
+plt.xlabel("Time")
+plt.ylabel("Normalised Index")
+plt.title("S&P 500 vs. Dow Jones Industrial Average (Normalised)")
+plt.legend()
+plt.show()
+```
+:::
+
+# Dates + Wild Cards = Fun! 🎉 {background-color="#2d4563"}
+
+## Converting time series to strings
+
+:::{style="margin-top: 60px; font-size: 21px;"}
+:::{.columns}
+:::{.column width=50%}
+- We can convert `datetime` objects to strings using the `strftime()` method
+- The first argument needs to be a datetime type 
+- The second argument is the format you want to use
+- A wildcard `%` is used to denote date formats
+- For example, `%Y` is the year, `%m` is the month, and `%d` is the day
+- `%H` is the hour, `%M` is the minute, and `%S` is the second
+
+```{python}
+#| eval: true
+#| echo: true
+financial["month_str"] = financial["date"].dt.strftime("%m")
+print(financial["month_str"].head(3))
+```
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center; margin-top: -50px;"}
+![](figures/wildcards_fig1.png)
+:::
+
+```{python}
+#| eval: true
+#| echo: true
+financial["week_str"]  = financial["date"].dt.strftime("%W")
+print(financial["week_str"].head(3))
+```
+:::
+:::
+:::
+
+## Converting time series to strings
+
+:::{style="margin-top: 60px; font-size: 21px;"}
+- We can also convert dates to names
+
+:::{style="text-align: center;"}
+![](figures/wildcards_fig2.png)
+:::
+
+```{python}
+#| eval: true
+#| echo: true
+financial["monthname"]   =  financial["date"].dt.strftime("%B")
+print(financial["monthname"].head(3))
+```
+
+```{python}
+#| eval: true
+#| echo: true
+financial["weekdayname"] =  financial["date"].dt.strftime("%A")
+print(financial["weekdayname"].head(3))
+```
+:::
+
+## Personalise your dates 🎨
+
+:::{style="margin-top: 60px; font-size: 21px;"}
+:::{.columns}
+:::{.column width=50%}
+- We can also customise the date format
+- For example, we can use the following format to display the date as `YYYY-MM-DD`
+
+```{python}
+#| eval: true
+#| echo: true
+financial["date_str"] = financial["date"].dt.strftime("%Y-%m-%d")
+print(financial["date_str"].head(3))
+```
+
+```{python}
+#| eval: true
+#| echo: true
+message_monthname =  financial["date"].dt.strftime("This is the month of %B")
+print(message_monthname.head(3))
+```
+:::
+
+:::{.column width=50%}
+```{python}
+#| eval: true
+#| echo: true
+message_monthday  =  financial["date"].dt.strftime("The day of the week is %A")
+print(message_monthday.head(3))
+```
+
+```{python}
+#| eval: true
+#| echo: true
+message_yearmonth =  financial["date"].dt.strftime("%Y-%m")
+print(message_yearmonth.head(3))
+```
+
+- You can use any format you like!
+- [Here is a list of all the wildcards you can use](https://strftime.org/)
+- Have fun! 🎉
+:::
+:::
+:::
+
+## Try it yourself! 🧠 {#sec:exercise02}
+
+:::{style="margin-top: 60px; font-size: 24px;"}
+- Now it's your turn (again)! 🚀
+- Create a new column called `date_test` which has the format using `.dt.strftime()`
+- The format should be `Weekday, Month Day, Year`
+  - For example, `Monday, December 31, 2023`
+- [[Appendix 02]{.button}](#sec:appendix02)
+:::
+
+# Data operations 📊 {background-color="#2d4563"}
+
+## Parsing + wildcards
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+:::{.columns}
+:::{.column width=50%}
+- We can also use the `datetime` module to perform operations on dates
+- For example, we can calculate the difference between two dates
+
+```{python}
+#| eval: true
+#| echo: true
+# Calculate the difference between two dates
+date1 = datetime(2023, 12, 31)
+date2 = datetime(2023, 12, 25)
+difference = date1 - date2
+print(difference)
+```
+
+- We can also use the `timedelta` function to add or subtract days
+
+```{python}
+#| eval: true
+#| echo: true
+# Add or subtract days using timedelta
+date4 = date1 + pd.Timedelta(days = 7)
+print(date4)
+```
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center; margin-top: -50px;"}
+![](figures/wildcards_fig3.png)
+:::
+
+```{python}
+#| eval: true
+#| echo: true
+financial['date_ex1_dt'] = pd.to_datetime(financial["date_ex1"], format = "%B %d %Y")
+print(financial['date_ex1_dt'].head(3))
+```
+
+```{python}
+#| eval: true
+#| echo: true
+financial['date_ex2_dt'] = pd.to_datetime(financial["date_ex2"], format = "%A, %Y-%m-%d")
+print(financial['date_ex2_dt'].head())
+```
+:::
+:::
+:::
+
+## Parsing + wildcards
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+- Does the following line of code work? 
+- `pd.to_datetime(financial["date_ex1"], format = "%A, %Y-%m-%d")`
+
+<br>
+
+:::{.fragment .fill-in}
+- [No, it doesn't work]{.alert}
+- Why not?
+
+```{verbatim}
+ValueError: time data "April 04 2018" doesn't match format "%A, %Y-%m-%d", at position 0. You might want to try:
+    - passing `format` if your strings have a consistent format;
+    - passing `format='ISO8601'` if your strings are all ISO8601 but not necessarily in exactly the same format;
+    - passing `format='mixed'`, and the format will be inferred for each element individually. You might want to use `dayfirst` alongside this.
+```
+:::
+:::
+
+## Period grouping
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+- We can group time series data by periods
+- For example, we can group data by month or year
+- First, you should specify the period you want to group by
+- We use `pd.Grouper()` to group the data, then we use the `agg()` function to calculate the aggregate
+
+```{python}
+#| eval: true
+#| echo: true
+# Group the data by year
+year_group = pd.Grouper(key='date', freq='YE') # 'YE' stands for year end
+financial.groupby(year_group).agg(sp500_mean = ("sp500","mean")).reset_index()
+```
+
+- You can also group by month, week, day, quarter, etc.
+- More information can be found [here](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Grouper.html)
+:::
+
+## Plot the aggregated data
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+```{python}
+#| eval: true
+#| echo: true
+plt.plot("date","sp500_mean",
+          data = financial.groupby(year_group).agg(sp500_mean = ("sp500","mean")).reset_index())
+plt.xlabel("Time")
+plt.ylabel("S&P 500")
+plt.title("Average stock market performance by year")
+plt.show()
+```
+:::
+
+## Period grouping
+### Another example
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+```{python}
+#| eval: true
+#| echo: true
+month_group = pd.Grouper(key='date', freq='ME')
+
+monthly_data = (financial
+               .groupby(month_group) 
+               .agg(sp500_mean = ("sp500", "mean"))
+               .reset_index())
+
+monthly_data
+```
+:::
+
+## Plot the aggregated data
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+```{python}
+#| eval: true
+#| echo: true
+plt.plot("date","sp500_mean",
+          data = monthly_data)
+plt.xlabel("Time")
+plt.ylabel("S&P 500")
+plt.title("Monthly average stock market performance")
+plt.show()
+```
+:::
+
+## Try it yourself! 🧠 {#sec:exercise03}
+
+:::{style="margin-top: 60px; font-size: 24px;"}
+- Practice `pd.to_datetime()` 
+- Parse the column `data_ex3` to a `datetime` object
+- Take a close look at the formatting
+- HINT: Refer to the table of wildcards in the previous section
+  
+
+<br>
+
+- Then, compute an aggregate dataset which calculates the standard deviation of the S&P 500 at the weekly level
+- Generate a line plot with your results
+- [[Appendix 03]{.button}](#sec:appendix03)
+:::
+
+# That's all for today! 🎉 {background-color="#2d4563"}
+
+# See you next time! 👋 {background-color="#2d4563"}
+
+## Appendix 01 {#sec:appendix01}
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+- Here is the solution to the exercise
+  
+```{python}
+#| eval: true
+#| echo: true
+# Sort the data
+financial = financial.sort_values("date")
+
+# Plot the data
+plt.plot("date", "djia", data = financial)
+plt.xlabel("Time")
+plt.ylabel("Dow Jones Industrial Average")
+plt.title("The evolution of the stock market")
+plt.show()
+```
+
+[[Back to exercise]{.button}](#sec:exercise01)
+:::
+
+## Appendix 02 {#sec:appendix02}
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+- We will use the following format: `Weekday, Month Day, Year`
+
+```{python}
+#| eval: true
+#| echo: true
+financial["date_test"] = financial["date"].dt.strftime("%A, %B %d, %Y")
+print(financial["date_test"].head())
+```
+
+[[Back to exercise]{.button}](#sec:exercise02)
+:::
+
+## Appendix 03 {#sec:appendix03}
+
+:::{style="margin-top: 60px; font-size: 22px;"}
+```{python}
+#| eval: true
+#| echo: true
+financial['date_ex3_dt'] = pd.to_datetime(financial["date_ex3"], format = "%d-%b-%y")
+
+week_group = pd.Grouper(key='date_ex3_dt', freq='W')
+
+weekly_data = (financial
+               .groupby(week_group) 
+               .agg(sp500_std = ("sp500", "std"))
+               .reset_index())
+
+plt.plot("date_ex3_dt","sp500_std",
+          data = weekly_data)
+plt.xlabel("Time")
+plt.ylabel("S&P 500")
+plt.title("Weekly standard deviation of the stock market performance")
+plt.show()
+```
+
+[[Back to exercise]{.button}](#sec:exercise03)
+:::
