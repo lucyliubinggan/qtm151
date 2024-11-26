@@ -1,0 +1,638 @@
+---
+title: QTM 151 - Introduction to Statistical Computing II
+subtitle: Lecture 23 - Pivot Tables
+date: 2024-11-20
+date-format: "DD MMMM, YYYY"
+author:
+  - name: Danilo Freire
+    email: danilo.freire@emory.edu
+    affiliations: Emory University
+format:
+  clean-revealjs:
+    self-contained: true
+    code-overflow: wrap
+    footer: "[Pivot Tables](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-23/23-pivot-tables.html)"
+transition: slide
+transition-speed: default
+scrollable: true
+engine: jupyter
+revealjs-plugins:
+  - fontawesome
+  - multimodal
+editor:
+  render-on-save: true
+---
+
+# Hello, friends! 😊 <br> How's everything? {background-color="#2d4563"} 
+
+## QTM 285 - Intro to Text as Data
+
+:::{style="margin-top: 30px; font-size: 24px; text-align: center;"}
+![](figures/text.png){width="70%"}
+:::
+
+# Brief recap 📚 {background-color="#2d4563"} 
+
+## Last time we talked about...
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+:::{.columns}
+:::{.column width=50%}
+- How to work with time series with Python using the `datetime` module
+- The [S&P 500](https://en.wikipedia.org/wiki/S%26P_500) and the [Dow Jones Industrial Average](https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average) stock market indices
+- How to visualise the data using `matplotlib`
+- How to convert time series to strings using [wildcards](https://en.wikipedia.org/wiki/Wildcard_character) (it's a bit tricky!). List [here](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes)
+- And finally, we saw how to calculate aggregated statistics 
+:::
+
+:::{.column width=50%}
+:::{style="text-align: center; margin-top: -20px;"}
+![](figures/ts.png)
+
+[William Playfair](https://en.wikipedia.org/wiki/William_Playfair) - Export & Import to and from Denmark & Norway from 1700 to 1780 (_Commercial and Political Atlas, 1786_)
+:::
+:::
+:::
+:::
+
+# Today's plan 📊 {background-color="#2d4563"}
+
+## Pivot Tables
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+- Today we will learn more about plotting data
+- We will see how to plot multiple variables at once
+- We will also learn how to estimate and plot growth rates
+- Lastly, we will see how to create pivot tables and change the data structure
+
+:::{style="text-align: center; margin-top: 20px;"}
+![](figures/pivot.png)
+:::
+:::
+
+## Import libraries and data 📦
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width=45%}
+- Let's start by importing the necessary libraries 
+- They are the same we used last time (and many other times!)
+
+```{python}
+#| echo: true
+#| eval: true 
+import pandas as pd
+import matplotlib.pyplot as plt
+```
+
+- We will also import the data we used last time
+
+```{python}
+#| echo: true
+#| eval: true
+financial = pd.read_csv("data_raw/financial.csv")
+```
+:::
+
+:::{.column width=55%}
+- Let's take a look at the data
+
+```{python}
+#| echo: true
+#| eval: true
+financial.head()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+financial.info()
+``` 
+:::
+:::
+::: 
+
+## Parse and clean data 🧹
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width=55%}
+- We will parse the date column
+- What is parsing, you may ask? 
+- [It is the process of converting a string into a date]{.alert}
+- Our column of interest is `date_str`
+- We will convert it to a datetime object
+- We will also sort the data by date
+
+```{python}
+#| echo: true
+#| eval: true
+financial["date"] = pd.to_datetime(financial["date_str"])
+financial = financial.sort_values("date", ascending = True) 
+
+financial.dtypes
+```
+:::
+
+:::{.column width=45%}
+- What does ```[ns]``` mean in the ```datetime64[ns]``` column type?
+- It means nanoseconds, which is the smallest unit of time in Python
+- It indicates the precision of the date column
+- We don't actually need nanosecond precision, but... well, it doesn't hurt either! 😅
+- We can always change it later if we want to, such as using `pd.to_datetime(financial["date"], unit='s')` to convert it to seconds, or `unit='m'` to convert it to minutes
+:::
+:::
+:::
+
+# Plot multiple variables 📈 {background-color="#2d4563"}
+
+## Plotting multiple variables
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- Last time, we saw how to plot multiple variables, but let us refresh our memory 😉
+- We will plot the `sp500` and `dji` columns just using `pandas` (wait, what? 😲)
+
+```{python}
+#| echo: true
+#| eval: true
+financial[["date","sp500","djia"]].set_index("date").plot()
+```
+:::
+
+## Plotting multiple variables
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- As we also saw last time, the two trends are not immediately comparable because they have different scales
+- We can fix this by normalising the data (as we did last time), or by transforming one or both columns
+- Last time we saw how to normalise the data by dividing them by the first value
+
+```{python}
+#| echo: true
+#| eval: false
+financial["sp500_normalised"] = financial["sp500"] / financial["sp500"].iloc[0]
+financial["djia_normalised"] = financial["djia"] / financial["djia"].iloc[0]
+
+# Plot the normalized data
+plt.plot("date", "sp500_normalised", data = financial, label = "S&P 500 (Normalised)")
+plt.plot("date", "djia_normalised", data = financial, label = "Dow Jones Industrial Average (Normalised)")
+plt.xlabel("Time")
+plt.ylabel("Normalised Index")
+plt.title("S&P 500 vs. Dow Jones Industrial Average (Normalised)")
+plt.legend()
+plt.show()
+```
+:::
+
+## Plotting multiple variables
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- Let's see the results
+
+```{python}
+#| echo: false
+#| eval: true
+financial["sp500_normalised"] = financial["sp500"] / financial["sp500"].iloc[0]
+financial["djia_normalised"] = financial["djia"] / financial["djia"].iloc[0]
+
+# Plot the normalized data
+plt.plot("date", "sp500_normalised", data = financial, label = "S&P 500 (Normalised)")
+plt.plot("date", "djia_normalised", data = financial, label = "Dow Jones Industrial Average (Normalised)")
+plt.xlabel("Time")
+plt.ylabel("Normalised Index")
+plt.title("S&P 500 vs. Dow Jones Industrial Average (Normalised)")
+plt.legend()
+plt.show()
+```
+:::
+
+## Plotting multiple variables
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- We can also use simple transformations if we have some understanding of the data (which we always should! 😂)
+- For example, the `djia` is usually higher than the `sp500`, so we can simply divide the `djia` by 10 to bring the two series closer together
+
+```{python}
+#| echo: true
+#| eval: true
+financial['djia_rescale'] = financial['djia']/10
+
+financial[["date","sp500","djia_rescale"]].set_index("date").plot()
+plt.xlabel("Time")
+plt.ylabel("Value of Index Funds")
+plt.legend(["S&P 500","Dow Jones"])
+plt.title("S&P 500 vs. Dow Jones Industrial Average")
+plt.show()
+```
+:::
+
+# Time difference/growth rates 📈 {background-color="#2d4563"}
+
+## Time difference/growth rates: `diff()`
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- We can also calculate the difference between two consecutive values, such as the daily fluctuations of the stock market
+- We can do this by using the `diff()` method
+- The method simply calculates the difference between the current value and the previous value in the column
+- The first value will always be `NaN` because there is no previous value to compare it to
+- We must [always ensure that the data are sorted](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sort_values.html) before using the `diff()` method, otherwise the results will be incorrect
+
+```{python}
+#| echo: true
+#| eval: true
+financial["diff_sp500"] = financial["sp500"].diff()
+financial.head() 
+```
+:::
+
+## Time difference/growth rates
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- We can plot the differences in the `sp500` column to see the daily fluctuations
+
+```{python}
+#| echo: true
+#| eval: true
+plt.plot("date", "diff_sp500", data = financial, label = "S&P 500")
+plt.xlabel("Time")
+plt.ylabel("Daily Fluctuations")
+plt.legend()
+plt.show()
+```
+:::
+
+
+## Hmmm, that's still not very informative... 🤔
+### Compute lagged differences and growth rates
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- The plot is still a little hard to understand because it is calculated in points
+- We can fix this using lagged differences
+- We can calculate the growth rate by dividing the difference by the previous value
+- First, we will create a new column with the lagged values, then calculate the growth rate
+
+```{python}
+#| echo: true
+#| eval: true
+financial["lag_sp500"] = financial["sp500"].shift(1)
+
+# Convert into percentage
+financial["growth_sp500"] = (financial["diff_sp500"]/financial["lag_sp500"]) * 100
+
+financial.head()
+```
+:::
+
+## Let's plot the graph
+
+:::{style="margin-top: 30px; font-size: 19px;"}
+- That is easier to understand! 😊
+- We can see the daily fluctuations in the S&P 500 index in percentage terms, which is indeed more informative
+```{python}
+#| echo: true
+#| eval: true
+plt.plot("date", "growth_sp500",
+          data = financial)
+plt.xlabel("Time")
+plt.ylabel("Daily percentage change ")
+plt.title("Change in the S&P 500 Index")
+plt.show()
+```
+:::
+
+## Try it yourself! 🧠 {#sec:exercise01}
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+- Now it's your turn!
+- Compute a column with the growth of the Dow Jones
+  - Use `diff()` to calculate the difference and `shift()` to create the lagged values
+- Plot the growth of the S&P 500 and Dow Jones in a single plot
+- [[Appendix 01]{.button}](#sec:appendix01)
+:::
+
+# Subsetting with time data 📉 {background-color="#2d4563"}
+
+## Subsetting with time data
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+- Do you remember our old friend `query()`?
+- We can use it again here! 😊
+- Since the `date` column has a time format, Python will interpret `2019-01-01` as a date inside the query command
+- We can use boolean operators to subset the data
+- Note: remember that you have to use single quotations for `.query()`
+
+```{python}
+#| echo: true
+#| eval: true
+subset_before  = financial.query('date <= "2019-01-01"')
+subset_after   = financial.query('date >= "2020-01-01"')
+
+max(subset_before['date'])
+```
+
+```{python}
+#| echo: true
+#| eval: true
+max(subset_after['date'])
+```
+:::
+
+## Subsetting with time data
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- We can also subset between two dates
+
+```{python}
+#| echo: true
+#| eval: true
+subset_between = financial.query('date.between("2020-03-02","2020-05-02")')
+subset_between.iloc[:, :6].head(3)
+```
+
+```{python}
+#| echo: true
+#| eval: true
+subset_between.iloc[:, :6].tail(3)
+```
+
+- Why don't we have data for the 2nd of May? Was it a weekend? 🤔
+
+```{python}
+#| echo: true
+#| eval: true
+from datetime import datetime
+date_str = '2020-05-02'
+date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+
+# Get the day of the week
+day_of_week = date_obj.strftime('%A')
+day_of_week
+```
+
+:::
+
+## Subsetting with time data
+
+:::{style="margin-top: 30px; font-size: 19px;"}
+- We can then flag some observations that meet a certain condition
+- For instance, we can flag the observations where the growth of the S&P 500 index is greater than 5% and plot them
+
+```{python}
+#| echo: true
+#| eval: false
+financial["bool_period"]  = financial["date"].between("2020-03-01","2020-05-01")
+financial["bool_example"] = financial["growth_sp500"] > 5
+
+# Create a line plot
+plt.plot("date", "growth_sp500", data = financial)
+plt.xlabel("Time")
+plt.ylabel("Daily percentage change ")
+plt.title("The S&P 500 during the start of COVID")
+
+# Add a shaded region with a rectangle with "fill_between()"
+# "x" is the x-coordinate, "y1" and "y2" are the lower
+# and upper bounds of the rectangle, respectively
+# We can set this to be the minimum and maximum of the outcome
+# We use "where" to test a logical condition
+
+vec_y = financial["growth_sp500"]
+plt.fill_between(x = financial["date"],
+                 y1 = vec_y.min(),
+                 y2 = vec_y.max(),
+                 where = financial["bool_period"],
+                 alpha = 0.2, color = "red")
+
+plt.show()
+```
+:::
+
+## Let's see the graph
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+```{python}
+#| echo: false
+#| eval: true
+financial["bool_period"]  = financial["date"].between("2020-03-01","2020-05-01")
+financial["bool_example"] = financial["growth_sp500"] > 5
+
+# Create a line plot
+plt.plot("date", "growth_sp500", data = financial)
+plt.xlabel("Time")
+plt.ylabel("Daily percentage change ")
+plt.title("The S&P 500 during the start of COVID")
+
+# Add a shaded region wth a rectangle
+# "x" is the x-coordinates, "y1" and "y2" are the lower
+# and upper bounds of the rectangle. We can set this
+# to be the minimum and meximum of the outcome.
+# we use "where" to test a logical condition
+
+vec_y = financial["growth_sp500"]
+plt.fill_between(x= financial["date"],
+                 y1 = vec_y.min(),
+                 y2 = vec_y.max(),
+                 where = financial["bool_period"],
+                 alpha = 0.2,color = "red")
+
+plt.show()
+```
+:::
+
+## Try it yourself! 🧠 {#sec:exercise02}
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+- Now it's your turn again!
+- Generate a plot of the daily growth of the Dow Jones 
+- Highlight regions where there was growth higher than 4% or below -4% (both of them! Use `|` to include both conditions)
+- [[Appendix 02]{.button}](#sec:appendix02)
+:::
+
+# Wide and long data formats 📊 {background-color="#2d4563"}
+
+## Wide and long data formats
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+:::{.columns}
+:::{.column width=50%}
+- Data can come in a wide variety of formats
+- Few rows, multiple columns (wide)
+- Stacked rows, few columns (long)
+- The [information is the same]{.alert}, but the structure is different
+- The long format is usually preferred for data analysis, while the wide format is better for presentation
+
+:::{style="text-align: center; margin-top: 20px;"}
+![](figures/melt_fig.png)
+:::
+:::
+
+:::{.column width=50%}
+- We can convert data from wide to long format using the `melt()` function
+- The `melt()` function takes the following arguments:
+  - `id_vars`: the columns to keep as is
+  - `value_vars`: the columns to melt
+  - `var_name`: the name of the new column with the variable names
+  - `value_name`: the name of the new column with the values
+:::
+:::
+:::
+
+## Wide and long data formats
+
+:::{style="margin-top: 30px; font-size: 18px;"}
+- Let's see an example
+- How the data looked before the melt
+
+```{python}
+#| echo: true
+#| eval: true
+financial[["date", "sp500", "djia"]].head()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+financial_long = pd.melt(financial,
+                         id_vars = 'date', # keep the date column
+                         value_vars = ['sp500','djia'], # melt the sp500 and djia columns
+                         var_name = "portfolio_type", # variable name
+                         value_name = "portfolio_value") # value name
+
+```
+
+- And now we have the data in long format:
+
+```{python}
+#| echo: true
+#| eval: true
+financial_long.sort_values(by='date').head()
+```
+:::
+
+## Long data format
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width=47%}
+- We can also convert the data back to wide format using the `pd.pivot()` function
+- The `pd.pivot()` function takes the following arguments:
+  - `index`: the column to keep as is
+  - `columns`: the column to pivot
+  - `values`: the column with the values
+
+:::{style="text-align: center; margin-top: 20px;"}
+![](figures/pivot_fig.png)
+:::
+:::
+
+:::{.column width=53%}
+```{python}
+#| echo: true
+#| eval: true
+financial_wide = pd.pivot(financial_long,
+                           index = 'date',
+                           columns = 'portfolio_type',
+                           values =  'portfolio_value')
+
+financial_wide.head()
+```
+
+- If you also want the index to be part of the dataset add `.reset_index()` to the end of the previous command
+:::
+:::
+:::
+
+## Try it yourself! 🧠 {#sec:exercise03}
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+- Convert the `growth_sp500` and `growth_djia` to long format
+- [[Appendix 03]{.button}](#sec:appendix03)
+:::
+
+# That's all for today! 🎉 {background-color="#2d4563"}
+
+# Thank you for your attention <br> and see you soon! 🙏 {background-color="#2d4563"}
+
+## Appendix 01: Solution {#sec:appendix01}
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+```{python}
+#| eval: true
+#| echo: true 
+financial["diff_djia"] = financial["djia"].diff()
+financial["lag_djia"]  = financial["djia"].shift(1)
+financial["growth_djia"] = (financial["diff_djia"] / financial["lag_djia"])*100
+
+# Method 1: Adding multiple lines with "plt.plot()"
+# you can make a plot transparent by adding an alpha parameter (between 0 and 1)
+
+plt.plot("date","growth_djia",data= financial)
+plt.plot("date","growth_sp500",data= financial,alpha = 0.6)
+plt.xlabel("Time")
+plt.ylabel("Daily percentage change")
+plt.title("Change in the Dow Jones Index")
+plt.show()
+```
+
+[[Back to Exercise 01]{.button}](#sec:exercise01)
+:::
+
+## Appendix 01: Solution
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+```{python}
+#| eval: true
+#| echo: true 
+# Method 2: A single line with ".plot()" but setting the "x-axis"
+# with ".set_index()"
+financial[["date","growth_sp500","growth_djia"]].set_index("date").plot()
+plt.xlabel("Time")
+plt.ylabel("Daily percentage change")
+plt.title("Changes in the Stock Market Indecies")
+plt.legend(["S&P 500", "Dow Jones Industrial Index"])
+plt.show()
+```
+
+[[Back to Exercise 01]{.button}](#sec:exercise01)
+:::
+
+## Appendix 02: Solution {#sec:appendix02}
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+```{python}
+#| eval: true
+#| echo: true
+plt.plot("date","growth_djia",data= financial)
+plt.xlabel("Time")
+plt.ylabel("Daily percentage change")
+plt.title("Change in the Dow Jones Index")
+
+financial["bool_djia"] = (financial["growth_djia"] > 4) | (financial["growth_djia"] < -4)
+vec_y = financial["growth_djia"]
+plt.fill_between(x = financial["date"],
+                 y1 = vec_y.min(),
+                 y2 = vec_y.max(),
+                 where = financial["bool_djia"],
+                 alpha = 0.7,color="pink")
+``` 
+
+[[Back to Exercise 02]{.button}](#sec:exercise02)
+:::
+
+## Appendix 03: Solution {#sec:appendix03}
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+```{python}
+#| eval: true
+#| echo: true
+financial_long = pd.melt(financial,
+                         var_name = "portfolio_type",
+                         value_name = "portfolio_value",
+                         id_vars='date',
+                         value_vars=['growth_sp500','growth_djia'])
+
+financial_long.sort_values(by='date').head()
+```
+
+[[Back to Exercise 03]{.button}](#sec:exercise03)
+:::
+
+

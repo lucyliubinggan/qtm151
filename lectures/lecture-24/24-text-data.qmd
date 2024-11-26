@@ -1,0 +1,498 @@
+---
+title: QTM 151 - Introduction to Statistical Computing II
+subtitle: Lecture 24 - Text Data
+date: 2024-11-25
+date-format: "DD MMMM, YYYY"
+author:
+  - name: Danilo Freire
+    email: danilo.freire@emory.edu
+    affiliations: Emory University
+format:
+  clean-revealjs:
+    self-contained: true
+    code-overflow: wrap
+    footer: "[Text Data](https://raw.githack.com/danilofreire/qtm151/main/lectures/lecture-24/24-text-data.html)"
+transition: slide
+transition-speed: default
+scrollable: true
+engine: jupyter
+revealjs-plugins:
+  - fontawesome
+  - multimodal
+editor:
+  render-on-save: true
+---
+
+# Hello, everyone! 😊 {background-color="#2d4563"} 
+
+# Recap 🤓 {data-background="#2d4563"}
+
+## Time series data
+### Last time, we...
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Dived a bit deeper into time series data
+- Saw how to plot (multiple) trends in the same plot
+- Learned how to calculate growth rates and normalise data in different ways
+- Learned how to use the `diff()` function to calculate differences between consecutive observations and the `shift()` function to shift the data
+- Saw how to use `query()` to filter data
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center;"}
+![](figures/gdp.jpg)
+:::
+:::
+:::
+:::
+
+# Today's plan 📚 {data-background="#2d4563"}
+
+## Text data
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Today we will work with text data in Python
+- Text data is as popular as ever, thanks to social media, LLMs, and the like
+- We use text data to estimate sentiment, classify documents, ideal points of politicians, and much more
+- Text is usually messy and unstructured, so we need to clean it before we can use it
+- We will learn how to clean text data and how to use them for analysis
+:::
+
+:::{.column width="50%"}
+- We will use some pandas funcions today
+- But there are several libraries that are worth cheking out too, such as [nltk](https://www.nltk.org/), [spaCy](https://spacy.io/), and [gensim](https://radimrehurek.com/gensim/)
+- We will also introduce the concept of [regular expressions](https://docs.python.org/3/library/re.html), which allow you to search for patterns in text
+:::
+:::
+:::
+
+## Some interesting applications of text analysis
+### Ideal point estimation
+
+:::{style="margin-top: 30px; font-size: 20px; text-align: center;"}
+![](figures/barbera.png){width="55%"}
+
+Barberá, P. (2015). [Birds of the same feather tweet together: Bayesian ideal point estimation using Twitter data](https://www.cambridge.org/core/journals/political-analysis/article/birds-of-the-same-feather-tweet-together-bayesian-ideal-point-estimation-using-twitter-data/91E37205F69AEA32EF27F12563DC2A0A). Political analysis, 23(1), 76-91. [YouTube video](https://www.youtube.com/watch?v=gA2fDwRyxa4)
+:::
+
+## Some interesting applications of text analysis
+### Word frequency as a proxy for importance
+
+:::{style="margin-top: 30px; font-size: 20px; text-align: center;"}
+![](figures/image.jpeg){width="50%"}
+
+Rozado, D., Al-Gharbi, M., & Halberstadt, J. (2023). [Prevalence of prejudice-denoting words in news media discourse: A chronological analysis](https://journals.sagepub.com/doi/full/10.1177/08944393211031452). Social Science computer review, 41(1), 99-122.
+:::
+
+## Some interesting applications of text analysis
+### Sentiment analysis
+
+:::{style="margin-top: 30px; font-size: 20px; text-align: center;"}
+![](figures/android_iphone_ratios_plot-1.svg){width="70%"}
+
+Robinson, D. [Text analysis of Trump's tweets confirms he writes only the (angrier) Android half](http://varianceexplained.org/r/trump-tweets/). Variance Explained.
+:::
+
+## Some interesting applications of text analysis
+### What gets censored in China?
+
+:::{style="margin-top: 30px; font-size: 20px; text-align: center;"}
+![](figures/censorship.png){width="70%"}
+
+King, G., Pan, J., & Roberts, M. E. (2013). [How censorship in China allows government criticism but silences collective expression](https://www.cambridge.org/core/journals/american-political-science-review/article/abs/how-censorship-in-china-allows-government-criticism-but-silences-collective-expression/C7EF4A9C9D59425C2D09D83742C1FE00). American political science Review, 107(2), 326-343.
+:::
+
+# Text data 📜 {data-background="#2d4563"}
+
+## Text data
+### Import the necessary libraries and data
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- As usual, let's start by importing the necessary libraries and the data we will use today
+- The data are about congressional bills in the US
+
+```{python}
+#| echo: true
+#| eval: true
+import pandas as pd
+
+# Load the data
+bills_actions = pd.read_csv("data_raw/bills_actions.csv")
+bills_actions.dtypes
+```
+:::
+
+:::{.column width="50%"}
+- Let's have a quick look at the data
+
+```{python}
+#| echo: true
+#| eval: true
+bills_actions.head()
+```
+:::
+:::
+:::
+
+## Basic text operations
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+:::{.columns}
+:::{.column width="50%"}
+### Counting categories
+
+- A simple way to start working with text data is to count the number of words in a text or dataset
+- Let's see how many categories we have in the `category` column
+
+```{python}
+#| echo: true
+#| eval: true
+bills_actions["category"].nunique()
+```
+
+- We can also use `value_counts()` to see the frequency of each category
+
+```{python}
+#| echo: true
+#| eval: true
+bills_actions["category"].value_counts()
+```
+:::
+
+:::{.column width="50%"}
+### Subset text categories
+
+- Here we are only interested in bills. So let's use `query()` to subset the data
+- We select all entries in the column called `category` which have values contain in `list_categories`
+  - `in` is used to test whether a word belongs to a list
+  - `@` is the syntax to reference `global` variables that are defined in the global environment
+
+```{python}
+#| echo: true
+#| eval: true
+list_categories = ["house bill","senate bill"]
+bills = bills_actions.query('category in @list_categories')
+
+# Verify that the code worked:
+bills["category"].value_counts()
+```
+:::
+:::
+:::
+
+## Data manipulation with sentences
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- The `str` attribute allows us to access string methods, and [there are a lot of them](https://pandas.pydata.org/docs/user_guide/text.html)
+- Here we will use `str.contains()` to check if a sentence contains a specific word
+- Let's see how many bills contain the word `senator`
+
+```{python}
+#| echo: true
+#| eval: true
+# Check if the action contains the word "Senator"
+bool_contains = bills["action"].str.contains("Senator")
+
+# Check the result
+bool_contains.head()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+# Calculate the proportion 
+bool_contains.mean()
+```
+:::
+
+:::{.column width="50%"}
+- Let's double-check the result
+
+```{python}
+#| echo: true
+#| eval: true
+bills[bills["action"].str.contains("Senator")]
+```
+:::
+:::
+:::
+
+## Replacing text
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+- We can also use `str.replace()` to replace text
+- Let's replace the word `Senator` by `Sen.` in the `action` column
+
+```{python}
+#| echo: true
+#| eval: true
+bills["action_custom"] = bills["action"].str.replace("Senator","Sen.")
+bills[["action","action_custom"]].head(10)
+```
+:::
+
+## Try it yourself! 🤓 {#sec:exercise01}
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+- Create a new dataset called `resolutions` which subsets rows contain the `category` values:
+  - `["house resolution","senate resolution"]`
+- Create a new column called `action_custom` which replaces the word `resolution` by `res.` in the `action` column
+- Check the first 10 rows of the new dataset
+- [[Appendix 01]{.button}](#sec:appendix01)
+:::
+
+# Regular expressions 🔎 {data-background="#2d4563"}
+
+## Regular expressions
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- [Regular expressions ("regex")](https://docs.python.org/3/library/re.html) are a flexible tool to search for patterns in text
+- Regex is a language in itself, and it is used in many programming languages
+- They are indeed very powerful, [but can also be very complex](https://www.regular-expressions.info/)
+- Here we will see just the basics of regex, but it is worth learning more about it (if you have the courage!)
+- An example of a _very simple_ regex used to validate email addresses: `^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$`
+- It means "a string that starts with a sequence of letters, numbers, underscores, hyphens, and dots, followed by an `@`, followed by another sequence of letters, numbers, underscores, hyphens, and dots, followed by a dot and a sequence of letters with length between 2 and 5" 😅
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center; margin-top: -30px;"}
+![](figures/cnchoni4hbn81.png){width="70%"}
+![](figures/6tmm98vtpyh81.png){width="70%"}
+:::
+:::
+:::
+:::
+
+## Regular expressions in Python
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+- Let's load the dataset again
+
+```{python}
+#| echo: true
+#| eval: true
+dataset = pd.read_csv("data_raw/bills_actions.csv")
+```
+
+- And let's split the data into two datasets: one for senate bills and another for amendments
+
+```{python}
+#| echo: true
+#| eval: true
+senate_bills = dataset.query('category == "senate bill"')
+amendments = dataset.query('category == "amendment"')
+```
+
+- Let's see all `actions` that contain the words `to reconsider`
+- We can use the `str.contains()` method again
+
+```{python}
+#| echo: true
+#| eval: true
+dataset[dataset['action'].str.contains('to reconsider')].head()
+```
+:::
+
+## Regular expressions in Python
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- Now let's combine the `str.contains()` method with a regular expression
+- Python handles regex with the `re` module, which is part of the standard library
+- Let's import it too
+
+```{python}
+#| echo: true
+#| eval: true
+import re
+```
+
+- We can use the `str.findall()` method to find all occurrences of a pattern in a string
+- This is similar to `str.contains()`, but it returns the actual matches instead of a boolean (True/False) when a match is found
+- We will search for all occurrences of the word `Amdt` followed by a dot and a number or a non-digit character (e.g., `Amdt.1`, `Amdt.2!`, `Amdt.3.`, `Amdt.4@`, `Amdt.5a`, etc)
+:::
+
+:::{.column width="50%"}
+- The regex pattern is `Amdt\.\d+`
+  - `Amdt` is the word we are looking for
+  - `\.` is used to escape the dot, which is a special character in regex
+  - `\d` is used to match any digit
+  - `+` is used to match one or more occurrences of the previous character
+  - `\D+` is used to match any non-digit character
+- Note the `r` before the string, which is used to indicate a raw string (to avoid Python from interpreting the backslashes)
+- Let's see the result
+
+```{python}
+#| echo: true
+#| eval: true
+amendments["action"].str.findall(r'Amdt\.\d+\D').head()
+```
+:::
+:::
+:::
+
+## Wildcards and quantifiers
+
+:::{style="margin-top: 30px; font-size: 23px;"}
+:::{.columns}
+:::{.column width="50%"}
+- There are several special characters in regex. Examples:
+- `.` = any character except a newline
+- `\d` = digit
+- `\D` = non-digit character
+- `\w` = any word character (alphanumeric character plus underscore)
+- `\W` = any non-word character
+- `\s` = any whitespace character
+- `\S` = any non-whitespace character
+- `+` = one or more occurrences of the previous character
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center; margin-top: -30px;"}
+![](figures/wildcards_regex1.png){width="100%"}
+
+- There are many more special characters and quantifiers
+- Check the [documentation](https://docs.python.org/3/library/re.html) for more information
+:::
+:::
+:::
+:::
+
+## Some examples
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+- Get digits after string
+
+```{python}
+#| echo: true
+#| eval: true
+amendments["action"].str.findall(r"Amdt\.\d+").head()
+```
+- Get any character before string
+
+```{python}
+#| echo: true
+#| eval: true
+amendments["action"].str.findall(r"\wmdt\.").head()
+```
+
+- Get two characters before string and four characters after string
+
+```{python}
+#| echo: true
+#| eval: true
+amendments["action"].str.findall(r"\w{2}dt\.\w{4}").head()
+```
+:::
+
+## Wildcards and quantifiers
+
+:::{style="margin-top: 30px; font-size: 20px;"}
+:::{.columns}
+:::{.column width="50%"}
+- [Quantifiers](https://docs.python.org/3/library/re.html#regular-expression-syntax) are used to specify how many occurrences of a character we want to match
+- `*` = zero or more occurrences of the previous character
+- `?` = zero or one occurrence of the previous character
+- `{n}` = exactly `n` occurrences of the previous character
+- `{n,}` = at least `n` occurrences of the previous character
+- `{n,m}` = between `n` and `m` occurrences of the previous character
+- `^` = start of a string
+- `$` = end of a string
+- `[]` = a set of characters
+- `|` = or
+- `()` = group
+- Enough for today! 😅
+:::
+
+:::{.column width="50%"}
+:::{style="text-align: center; margin-top: -30px;"}
+![](figures/wildcards_regex2.png){width="100%"}
+:::
+
+- Match any characters (including none) before `Amdt` followed by non-whitespace
+
+```{python}
+#| echo: true
+#| eval: true
+amendments["action"].str.findall(r".*Amdt\S*").head()
+```
+:::
+:::
+:::
+
+## Try it yourself! 😅 {#sec:exercise02}
+
+:::{style="margin-top: 30px; font-size: 24px;"}
+- Practice using the `senate_bills` dataset
+
+```{python}
+#| echo: true
+#| eval: true
+senate_bills = dataset.query('category == "senate bill"')
+```
+
+- Use `.str.findall()` to find the word `Senator`
+- Use the regular expression `"Senator \S"` to extract the the first letter of senator
+- Use `*` to extract senator names
+- [[Appendix 02]{.button}](#sec:appendix02)
+:::
+
+# That's all for today! 🎉 {data-background="#2d4563"}
+
+# Happy Thanksgiving! 🦃 {data-background="#2d4563"}
+
+## Appendix 01 {#sec:appendix01}
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+```{python}
+#| echo: true
+#| eval: true
+# Subset the data
+list_categories = ["house resolution","senate resolution"]
+resolutions = bills_actions.query('category in @list_categories')
+
+# Replace the word "resolution" by "res."
+resolutions["action_custom"] = resolutions["action"].str.replace("resolution","res.")
+
+# Check the first 10 rows
+resolutions[["action","action_custom"]].head(10)
+```
+[Back to exercise](#sec:exercise01)
+:::
+
+## Appendix 02 {#sec:appendix02}
+
+:::{style="margin-top: 30px; font-size: 21px;"}
+```{python}
+#| echo: true
+#| eval: true
+# Find the word "Senator"
+senate_bills["action"].str.findall(r"Senator").head()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+# Extract the first letter of senator
+senate_bills["action"].str.findall(r"Senator \S").head()
+```
+
+```{python}
+#| echo: true
+#| eval: true
+# Extract senator names
+senate_bills["action"].str.findall(r"Senator \S*").head()
+```
+[Back to exercise](#sec:exercise02)
+:::
